@@ -32,6 +32,15 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.local.example
+
+# serwist / pwa generated
+public/sw.js
+public/sw.js.map
+public/swe-worker-*.js
+
+# local Claude Code settings
+.claude/
 
 # vercel
 .vercel
