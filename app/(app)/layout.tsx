@@ -1,5 +1,6 @@
 import { BottomTabs } from "@/components/nav/bottom-tabs";
 import { SideRail } from "@/components/nav/side-rail";
+import { PullToRefresh } from "@/components/common/pull-to-refresh";
 
 export default function AppLayout({
   children,
@@ -15,6 +16,7 @@ export default function AppLayout({
         </div>
       </main>
       <BottomTabs />
+      <PullToRefresh />
     </div>
   );
 }
