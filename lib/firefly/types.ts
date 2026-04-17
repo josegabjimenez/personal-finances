@@ -77,6 +77,7 @@ export const transactionSplitSchema = z
     budget_id: z.string().optional().nullable(),
     budget_name: z.string().optional().nullable(),
     notes: z.string().optional().nullable(),
+    tags: z.array(z.string()).optional().nullable(),
   })
   .passthrough();
 
@@ -208,6 +209,26 @@ export const insightCategoryRowSchema = z
 
 export const insightCategorySchema = z.array(insightCategoryRowSchema);
 export type InsightCategoryRow = z.infer<typeof insightCategoryRowSchema>;
+
+// --- Tags ---------------------------------------------------------------
+
+export const tagSchema = z.object({
+  type: z.literal("tags"),
+  id: z.string(),
+  attributes: z
+    .object({
+      tag: z.string(),
+      date: z.string().optional().nullable(),
+      description: z.string().optional().nullable(),
+    })
+    .passthrough(),
+});
+
+export const tagsListSchema = z.object({
+  data: z.array(tagSchema),
+  meta: paginationMetaSchema.optional(),
+});
+export type Tag = z.infer<typeof tagSchema>;
 
 // --- Piggy banks ---------------------------------------------------------
 

@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import {
   currentMonthRange,
   getExpenseByCategory,
@@ -25,6 +27,7 @@ export default async function CategoriesPage() {
         const amount = raw !== null && Number.isFinite(raw) ? Math.abs(raw) : 0;
         return {
           id: r.id ?? r.name ?? Math.random().toString(),
+          categoryId: r.id ?? null,
           name: r.name ?? "(uncategorized)",
           currency: r.currency_code ?? "USD",
           amount,
@@ -76,12 +79,9 @@ export default async function CategoriesPage() {
             <Card className="divide-y overflow-hidden p-0">
               {cleaned.map((c) => {
                 const pct = total > 0 ? (c.amount / total) * 100 : 0;
-                return (
-                  <div
-                    key={c.id}
-                    className="flex items-center justify-between px-4 py-3"
-                  >
-                    <div>
+                const inner = (
+                  <>
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">{c.name}</p>
                       <p className="text-xs text-muted-foreground tabular-nums">
                         {pct.toFixed(1)}%
@@ -92,6 +92,23 @@ export default async function CategoriesPage() {
                       currency={c.currency}
                       className="text-sm"
                     />
+                    {c.categoryId && (
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
+                  </>
+                );
+
+                return c.categoryId ? (
+                  <Link
+                    key={c.id}
+                    href={`/categories/${c.categoryId}`}
+                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/60"
+                  >
+                    {inner}
+                  </Link>
+                ) : (
+                  <div key={c.id} className="flex items-center gap-3 px-4 py-3">
+                    {inner}
                   </div>
                 );
               })}

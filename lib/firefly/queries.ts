@@ -1,14 +1,18 @@
 import "server-only";
+import { z } from "zod";
 import { fireflyFetch } from "./client";
 import {
+  accountSchema,
   accountsListSchema,
   aboutUserSchema,
   budgetLimitsListSchema,
   budgetsListSchema,
   categoriesListSchema,
+  categorySchema,
   insightCategorySchema,
   piggyBanksListSchema,
   summaryBasicSchema,
+  tagsListSchema,
   transactionsListSchema,
   type Account,
   type Budget,
@@ -17,6 +21,7 @@ import {
   type InsightCategoryRow,
   type PiggyBank,
   type SummaryBasic,
+  type Tag,
   type TransactionGroup,
 } from "./types";
 import { endOfMonth, startOfMonth, toYMD } from "@/lib/format";
@@ -110,6 +115,27 @@ export async function listAccounts(type?: "asset" | "liability" | "expense" | "r
   return accountsListSchema.parse(raw).data;
 }
 
+export async function getAccount(id: string): Promise<Account> {
+  const raw = await fireflyFetch(`/accounts/${id}`, {
+    revalidate: 120,
+    tags: ["accounts"],
+  });
+  return z.object({ data: accountSchema }).parse(raw).data;
+}
+
+export async function listAccountTransactions(
+  accountId: string,
+  params: { page?: number; limit?: number } = {}
+): Promise<{ groups: TransactionGroup[]; totalPages: number }> {
+  const raw = await fireflyFetch(`/accounts/${accountId}/transactions`, {
+    searchParams: { page: params.page ?? 1, limit: params.limit ?? 50 },
+    revalidate: 30,
+    tags: ["transactions", "accounts"],
+  });
+  const parsed = transactionsListSchema.parse(raw);
+  return { groups: parsed.data, totalPages: parsed.meta?.pagination?.total_pages ?? 1 };
+}
+
 export async function listBudgets(): Promise<Budget[]> {
   const raw = await fireflyFetch("/budgets", {
     revalidate: 120,
@@ -135,6 +161,27 @@ export async function listCategories(): Promise<Category[]> {
   return categoriesListSchema.parse(raw).data;
 }
 
+export async function getCategory(id: string): Promise<Category> {
+  const raw = await fireflyFetch(`/categories/${id}`, {
+    revalidate: 300,
+    tags: ["categories"],
+  });
+  return z.object({ data: categorySchema }).parse(raw).data;
+}
+
+export async function listCategoryTransactions(
+  categoryId: string,
+  params: { page?: number; limit?: number } = {}
+): Promise<{ groups: TransactionGroup[]; totalPages: number }> {
+  const raw = await fireflyFetch(`/categories/${categoryId}/transactions`, {
+    searchParams: { page: params.page ?? 1, limit: params.limit ?? 50 },
+    revalidate: 30,
+    tags: ["transactions", "categories"],
+  });
+  const parsed = transactionsListSchema.parse(raw);
+  return { groups: parsed.data, totalPages: parsed.meta?.pagination?.total_pages ?? 1 };
+}
+
 export async function getExpenseByCategory(start: Date, end: Date): Promise<InsightCategoryRow[]> {
   const raw = await fireflyFetch("/insight/expense/category", {
     searchParams: { start: toYMD(start), end: toYMD(end) },
@@ -142,6 +189,14 @@ export async function getExpenseByCategory(start: Date, end: Date): Promise<Insi
     tags: ["insights"],
   });
   return insightCategorySchema.parse(raw);
+}
+
+export async function listTags(): Promise<Tag[]> {
+  const raw = await fireflyFetch("/tags", {
+    revalidate: 300,
+    tags: ["tags"],
+  });
+  return tagsListSchema.parse(raw).data;
 }
 
 export async function listPiggyBanks(): Promise<PiggyBank[]> {

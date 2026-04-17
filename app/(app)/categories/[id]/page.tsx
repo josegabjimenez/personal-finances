@@ -1,0 +1,121 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { getCategory, listCategoryTransactions } from "@/lib/firefly/queries";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Money } from "@/components/common/money";
+import { TransactionRow } from "@/components/transactions/transaction-row";
+import { Empty } from "@/components/common/empty";
+import { ErrorCard } from "@/components/common/error-card";
+
+export const dynamic = "force-dynamic";
+
+export default async function CategoryDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
+
+  const backLink = (
+    <Link
+      href="/categories"
+      className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+    >
+      <ArrowLeft className="h-4 w-4" />
+      Categories
+    </Link>
+  );
+
+  try {
+    const [category, { groups, totalPages }] = await Promise.all([
+      getCategory(id),
+      listCategoryTransactions(id, { page }),
+    ]);
+
+    const name = category.attributes.name;
+    const primaryCurrency =
+      groups[0]?.attributes.transactions[0]?.currency_code ?? "COP";
+    const total = groups.reduce((sum, g) => {
+      const s = g.attributes.transactions[0];
+      if (!s) return sum;
+      const n = parseFloat(s.amount);
+      if (!Number.isFinite(n)) return sum;
+      if (s.type === "withdrawal") return sum - n;
+      if (s.type === "deposit") return sum + n;
+      return sum;
+    }, 0);
+
+    function pageHref(p: number) {
+      return p > 1 ? `/categories/${id}?page=${p}` : `/categories/${id}`;
+    }
+
+    return (
+      <div className="space-y-4">
+        <div className="space-y-1">
+          {backLink}
+          <h1 className="text-2xl font-semibold tracking-tight">{name}</h1>
+        </div>
+        {groups.length === 0 ? (
+          <Empty title="No transactions for this category" />
+        ) : (
+          <>
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs text-muted-foreground">
+                {groups.length} transaction{groups.length !== 1 ? "s" : ""}
+                {totalPages > 1 ? " (this page)" : ""}
+              </span>
+              <Money
+                amount={total}
+                currency={primaryCurrency}
+                colorize
+                className="text-sm font-medium"
+              />
+            </div>
+            <Card className="divide-y overflow-hidden p-0">
+              {groups.map((g) => (
+                <TransactionRow key={g.id} group={g} />
+              ))}
+            </Card>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between text-sm">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  aria-disabled={page <= 1}
+                >
+                  <Link href={pageHref(page - 1)}>Previous</Link>
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Page {page} of {totalPages}
+                </span>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= totalPages}
+                  aria-disabled={page >= totalPages}
+                >
+                  <Link href={pageHref(page + 1)}>Next</Link>
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : undefined;
+    return (
+      <div className="space-y-4">
+        {backLink}
+        <ErrorCard message={message} />
+      </div>
+    );
+  }
+}

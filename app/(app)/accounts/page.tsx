@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { listAccounts } from "@/lib/firefly/queries";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
@@ -43,18 +45,18 @@ function AccountSection({
       </div>
       <Card className="divide-y overflow-hidden p-0">
         {accounts.map((a) => (
-          <div
+          <Link
             key={a.id}
-            className="flex items-center justify-between gap-3 px-4 py-3"
+            href={`/accounts/${a.id}`}
+            className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-accent/60"
           >
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">
                 {a.attributes.name}
               </p>
               {a.attributes.account_role || a.attributes.liability_type ? (
                 <p className="truncate text-xs text-muted-foreground">
-                  {a.attributes.account_role ??
-                    a.attributes.liability_type}
+                  {a.attributes.account_role ?? a.attributes.liability_type}
                 </p>
               ) : null}
             </div>
@@ -64,7 +66,8 @@ function AccountSection({
               colorize
               className="text-sm"
             />
-          </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Link>
         ))}
       </Card>
     </section>

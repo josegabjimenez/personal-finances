@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { listTransactions, listAccounts, listCategories } from "@/lib/firefly/queries";
+import { listTransactions, listAccounts, listCategories, listTags } from "@/lib/firefly/queries";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Money } from "@/components/common/money";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { FilterBar } from "@/components/transactions/filter-bar";
 import { Empty } from "@/components/common/empty";
@@ -18,6 +19,7 @@ interface SearchParams {
   end?: string;
   account?: string;
   category?: string;
+  tag?: string;
   page?: string;
 }
 
@@ -30,7 +32,7 @@ export default async function TransactionsPage({
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
   try {
-    const [{ groups, totalPages }, accounts, categories] = await Promise.all([
+    const [{ groups, totalPages }, accounts, categories, tags] = await Promise.all([
       listTransactions({
         page,
         limit: 50,
@@ -40,6 +42,7 @@ export default async function TransactionsPage({
       }),
       listAccounts("asset").catch(() => []),
       listCategories().catch(() => []),
+      listTags().catch(() => []),
     ]);
 
     const q = (sp.q ?? "").trim().toLowerCase();
@@ -54,6 +57,7 @@ export default async function TransactionsPage({
           s?.destination_name,
           s?.category_name,
           s?.budget_name,
+          ...(s?.tags ?? []),
           g.attributes.group_title,
         ]
           .filter(Boolean)
@@ -77,6 +81,25 @@ export default async function TransactionsPage({
       });
     }
 
+    if (sp.tag) {
+      filtered = filtered.filter((g) => {
+        const s = g.attributes.transactions[0];
+        return s?.tags?.includes(sp.tag!) ?? false;
+      });
+    }
+
+    const primaryCurrency =
+      filtered[0]?.attributes.transactions[0]?.currency_code ?? "COP";
+    const total = filtered.reduce((sum, g) => {
+      const s = g.attributes.transactions[0];
+      if (!s) return sum;
+      const n = parseFloat(s.amount);
+      if (!Number.isFinite(n)) return sum;
+      if (s.type === "withdrawal") return sum - n;
+      if (s.type === "deposit") return sum + n;
+      return sum;
+    }, 0);
+
     function pageHref(newPage: number) {
       const params = new URLSearchParams();
       if (sp.q) params.set("q", sp.q);
@@ -85,6 +108,7 @@ export default async function TransactionsPage({
       if (sp.end) params.set("end", sp.end);
       if (sp.account) params.set("account", sp.account);
       if (sp.category) params.set("category", sp.category);
+      if (sp.tag) params.set("tag", sp.tag);
       if (newPage > 1) params.set("page", String(newPage));
       const qs = params.toString();
       return `/transactions${qs ? `?${qs}` : ""}`;
@@ -100,17 +124,33 @@ export default async function TransactionsPage({
           initialEnd={sp.end ?? ""}
           initialAccount={sp.account ?? ""}
           initialCategory={sp.category ?? ""}
+          initialTag={sp.tag ?? ""}
           accounts={accounts.map((a) => ({ id: a.id, name: a.attributes.name }))}
           categories={categories.map((c) => ({ id: c.id, name: c.attributes.name }))}
+          tags={tags.map((t) => t.attributes.tag)}
         />
         {filtered.length === 0 ? (
           <Empty title="No transactions match your filters" />
         ) : (
-          <Card className="divide-y overflow-hidden p-0">
-            {filtered.map((g) => (
-              <TransactionRow key={g.id} group={g} />
-            ))}
-          </Card>
+          <>
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs text-muted-foreground">
+                {filtered.length} transaction{filtered.length !== 1 ? "s" : ""}
+                {totalPages > 1 ? " (this page)" : ""}
+              </span>
+              <Money
+                amount={total}
+                currency={primaryCurrency}
+                colorize
+                className="text-sm font-medium"
+              />
+            </div>
+            <Card className="divide-y overflow-hidden p-0">
+              {filtered.map((g) => (
+                <TransactionRow key={g.id} group={g} />
+              ))}
+            </Card>
+          </>
         )}
         {totalPages > 1 ? (
           <div className="flex items-center justify-between text-sm">
