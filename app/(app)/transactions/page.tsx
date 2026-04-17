@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { listTransactions, listAccounts, listCategories, listTags } from "@/lib/firefly/queries";
+import { toYMD, startOfMonth, endOfMonth } from "@/lib/format";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Money } from "@/components/common/money";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { FilterBar } from "@/components/transactions/filter-bar";
+import { MonthNav } from "@/components/transactions/month-nav";
 import { Empty } from "@/components/common/empty";
 import { ErrorCard } from "@/components/common/error-card";
 
@@ -20,6 +22,7 @@ interface SearchParams {
   account?: string;
   category?: string;
   tag?: string;
+  view?: "all";
   page?: string;
 }
 
@@ -30,6 +33,20 @@ export default async function TransactionsPage({
 }) {
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
+  const isAllView = sp.view === "all";
+
+  // Default to current month when neither view=all nor explicit date range is set
+  let effectiveStart = sp.start;
+  let effectiveEnd = sp.end;
+  if (!isAllView && !sp.start && !sp.end) {
+    effectiveStart = toYMD(startOfMonth());
+    effectiveEnd = toYMD(endOfMonth());
+  }
+
+  // Parse year/month from effective start for MonthNav
+  const [yearStr, monthStr] = (effectiveStart ?? "").split("-");
+  const navYear = parseInt(yearStr) || new Date().getFullYear();
+  const navMonth = parseInt(monthStr) || (new Date().getMonth() + 1);
 
   try {
     const [{ groups, totalPages }, accounts, categories, tags] = await Promise.all([
@@ -37,8 +54,8 @@ export default async function TransactionsPage({
         page,
         limit: 50,
         type: sp.type,
-        start: sp.start,
-        end: sp.end,
+        start: effectiveStart,
+        end: effectiveEnd,
       }),
       listAccounts("asset").catch(() => []),
       listCategories().catch(() => []),
@@ -104,11 +121,12 @@ export default async function TransactionsPage({
       const params = new URLSearchParams();
       if (sp.q) params.set("q", sp.q);
       if (sp.type) params.set("type", sp.type);
-      if (sp.start) params.set("start", sp.start);
-      if (sp.end) params.set("end", sp.end);
+      if (effectiveStart) params.set("start", effectiveStart!);
+      if (effectiveEnd) params.set("end", effectiveEnd!);
       if (sp.account) params.set("account", sp.account);
       if (sp.category) params.set("category", sp.category);
       if (sp.tag) params.set("tag", sp.tag);
+      if (isAllView) params.set("view", "all");
       if (newPage > 1) params.set("page", String(newPage));
       const qs = params.toString();
       return `/transactions${qs ? `?${qs}` : ""}`;
@@ -117,11 +135,12 @@ export default async function TransactionsPage({
     return (
       <div className="space-y-4">
         <PageHeader title="Transactions" />
+        <MonthNav year={navYear} month={navMonth} isAll={isAllView} />
         <FilterBar
           initialQ={sp.q ?? ""}
           initialType={sp.type ?? "all"}
-          initialStart={sp.start ?? ""}
-          initialEnd={sp.end ?? ""}
+          initialStart={effectiveStart ?? ""}
+          initialEnd={effectiveEnd ?? ""}
           initialAccount={sp.account ?? ""}
           initialCategory={sp.category ?? ""}
           initialTag={sp.tag ?? ""}

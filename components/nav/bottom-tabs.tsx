@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, PRIMARY_NAV, SECONDARY_NAV } from "./nav-items";
 import { LogoutButton } from "./logout-button";
+import { haptic } from "@/lib/haptic";
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -38,6 +39,7 @@ export function BottomTabs() {
               key={item.href}
               href={item.href}
               prefetch
+              onClick={() => haptic()}
               className={cn(
                 "flex flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors",
                 active ? "text-foreground" : "text-muted-foreground"
