@@ -7,6 +7,7 @@ function getMoneyFormatter(currency: string) {
     f = new Intl.NumberFormat(undefined, {
       style: "currency",
       currency: key,
+      minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
     moneyFormatters.set(key, f);
