@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listTransactions } from "@/lib/firefly/queries";
+import { listTransactions, listAccounts, listCategories } from "@/lib/firefly/queries";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,8 @@ interface SearchParams {
   type?: "withdrawal" | "deposit" | "transfer";
   start?: string;
   end?: string;
+  account?: string;
+  category?: string;
   page?: string;
 }
 
@@ -28,40 +30,61 @@ export default async function TransactionsPage({
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
   try {
-    const { groups, totalPages } = await listTransactions({
-      page,
-      limit: 50,
-      type: sp.type,
-      start: sp.start,
-      end: sp.end,
-    });
+    const [{ groups, totalPages }, accounts, categories] = await Promise.all([
+      listTransactions({
+        page,
+        limit: 50,
+        type: sp.type,
+        start: sp.start,
+        end: sp.end,
+      }),
+      listAccounts("asset").catch(() => []),
+      listCategories().catch(() => []),
+    ]);
 
     const q = (sp.q ?? "").trim().toLowerCase();
-    const filtered = q
-      ? groups.filter((g) => {
-          const s = g.attributes.transactions[0];
-          const hay = [
-            s?.description,
-            s?.source_name,
-            s?.destination_name,
-            s?.category_name,
-            s?.budget_name,
-            g.attributes.group_title,
-          ]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase();
-          return hay.includes(q);
-        })
-      : groups;
+    let filtered = groups;
 
-    // Preserve other search params when changing page
+    if (q) {
+      filtered = filtered.filter((g) => {
+        const s = g.attributes.transactions[0];
+        const hay = [
+          s?.description,
+          s?.source_name,
+          s?.destination_name,
+          s?.category_name,
+          s?.budget_name,
+          g.attributes.group_title,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    if (sp.account) {
+      filtered = filtered.filter((g) => {
+        const s = g.attributes.transactions[0];
+        return s?.source_name === sp.account || s?.destination_name === sp.account;
+      });
+    }
+
+    if (sp.category) {
+      filtered = filtered.filter((g) => {
+        const s = g.attributes.transactions[0];
+        return s?.category_name === sp.category;
+      });
+    }
+
     function pageHref(newPage: number) {
       const params = new URLSearchParams();
       if (sp.q) params.set("q", sp.q);
       if (sp.type) params.set("type", sp.type);
       if (sp.start) params.set("start", sp.start);
       if (sp.end) params.set("end", sp.end);
+      if (sp.account) params.set("account", sp.account);
+      if (sp.category) params.set("category", sp.category);
       if (newPage > 1) params.set("page", String(newPage));
       const qs = params.toString();
       return `/transactions${qs ? `?${qs}` : ""}`;
@@ -75,6 +98,10 @@ export default async function TransactionsPage({
           initialType={sp.type ?? "all"}
           initialStart={sp.start ?? ""}
           initialEnd={sp.end ?? ""}
+          initialAccount={sp.account ?? ""}
+          initialCategory={sp.category ?? ""}
+          accounts={accounts.map((a) => ({ id: a.id, name: a.attributes.name }))}
+          categories={categories.map((c) => ({ id: c.id, name: c.attributes.name }))}
         />
         {filtered.length === 0 ? (
           <Empty title="No transactions match your filters" />

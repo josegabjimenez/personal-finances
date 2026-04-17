@@ -4,9 +4,10 @@ function getMoneyFormatter(currency: string) {
   const key = currency || "USD";
   let f = moneyFormatters.get(key);
   if (!f) {
-    f = new Intl.NumberFormat(undefined, {
+    f = new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: key,
+      currencyDisplay: "code",
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
