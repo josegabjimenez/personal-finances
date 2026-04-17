@@ -23,16 +23,29 @@ const TYPES = [
   { value: "transfer", label: "Transfers" },
 ] as const;
 
+interface FilterOption {
+  id: string;
+  name: string;
+}
+
 export function FilterBar({
   initialQ,
   initialType,
   initialStart,
   initialEnd,
+  initialAccount,
+  initialCategory,
+  accounts,
+  categories,
 }: {
   initialQ: string;
   initialType: string;
   initialStart: string;
   initialEnd: string;
+  initialAccount: string;
+  initialCategory: string;
+  accounts: FilterOption[];
+  categories: FilterOption[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,6 +54,8 @@ export function FilterBar({
   const [type, setType] = React.useState(initialType || "all");
   const [start, setStart] = React.useState(initialStart);
   const [end, setEnd] = React.useState(initialEnd);
+  const [account, setAccount] = React.useState(initialAccount);
+  const [category, setCategory] = React.useState(initialCategory);
 
   // Debounced search submit
   React.useEffect(() => {
@@ -65,6 +80,10 @@ export function FilterBar({
     else sp.delete("start");
     if (end) sp.set("end", end);
     else sp.delete("end");
+    if (account) sp.set("account", account);
+    else sp.delete("account");
+    if (category) sp.set("category", category);
+    else sp.delete("category");
     sp.delete("page");
     router.replace(`/transactions?${sp.toString()}`);
   }
@@ -73,13 +92,19 @@ export function FilterBar({
     setType("all");
     setStart("");
     setEnd("");
+    setAccount("");
+    setCategory("");
     const sp = new URLSearchParams();
     if (q) sp.set("q", q);
     router.replace(`/transactions?${sp.toString()}`);
   }
 
   const filtersActive =
-    (type && type !== "all") || Boolean(start) || Boolean(end);
+    (type && type !== "all") ||
+    Boolean(start) ||
+    Boolean(end) ||
+    Boolean(account) ||
+    Boolean(category);
 
   return (
     <div className="flex items-center gap-2">
@@ -130,6 +155,42 @@ export function FilterBar({
                 ))}
               </div>
             </div>
+            {accounts.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="account-filter">Account</Label>
+                <select
+                  id="account-filter"
+                  value={account}
+                  onChange={(e) => setAccount(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="">All accounts</option>
+                  {accounts.map((a) => (
+                    <option key={a.id} value={a.name}>
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {categories.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="category-filter">Category</Label>
+                <select
+                  id="category-filter"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="">All categories</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="start">From</Label>

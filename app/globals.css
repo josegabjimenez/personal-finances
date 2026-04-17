@@ -87,9 +87,13 @@
     font-variant-numeric: tabular-nums;
     font-family: var(--font-mono);
   }
-  /* iOS safe-area insets */
+}
+
+@layer utilities {
+  /* iOS safe-area insets — calc adds content padding on top of the inset so
+     Dynamic Island / status bar never overlaps page content */
   .pt-safe {
-    padding-top: max(env(safe-area-inset-top), 0.5rem);
+    padding-top: calc(env(safe-area-inset-top) + 1.5rem);
   }
   .pb-safe {
     padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
