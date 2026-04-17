@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight } from "lucide-react";
 import type { TransactionGroup } from "@/lib/firefly/types";
 import { Money } from "@/components/common/money";
 import { formatDateShort } from "@/lib/format";
+import { haptic } from "@/lib/haptic";
 
 function iconFor(type: string) {
   switch (type) {
@@ -48,6 +51,7 @@ export function TransactionRow({ group }: { group: TransactionGroup }) {
   return (
     <Link
       href={`/transactions/${group.id}`}
+      onClick={() => haptic()}
       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/60"
     >
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted">
