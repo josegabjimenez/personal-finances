@@ -50,7 +50,7 @@ export function MonthTiles({
             <Money
               amount={t.amount ?? 0}
               currency={t.currency}
-              className="text-xl"
+              className="text-sm leading-tight md:text-xl"
             />
           </CardContent>
         </Card>

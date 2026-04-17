@@ -20,7 +20,7 @@ export function NetWorthCard({
           amount={value ?? 0}
           currency={currency}
           colorize={value !== null && value !== 0}
-          className="text-4xl tracking-tight"
+          className="text-2xl tracking-tight md:text-4xl"
         />
         {subtitle ? (
           <p className="text-xs text-muted-foreground">{subtitle}</p>
