@@ -29,10 +29,12 @@ export function MonthNav({
   year,
   month,
   isAll,
+  baseUrl = "/transactions",
 }: {
   year: number;
   month: number; // 1-indexed
   isAll: boolean;
+  baseUrl?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -43,7 +45,7 @@ export function MonthNav({
     sp.set("end", monthEnd(y, m));
     sp.delete("view");
     sp.delete("page");
-    router.push(`/transactions?${sp.toString()}`);
+    router.push(`${baseUrl}?${sp.toString()}`);
   }
 
   function goAll() {
@@ -52,7 +54,7 @@ export function MonthNav({
     sp.delete("end");
     sp.set("view", "all");
     sp.delete("page");
-    router.push(`/transactions?${sp.toString()}`);
+    router.push(`${baseUrl}?${sp.toString()}`);
   }
 
   function goCurrentMonth() {
