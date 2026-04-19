@@ -125,10 +125,15 @@ export async function getAccount(id: string): Promise<Account> {
 
 export async function listAccountTransactions(
   accountId: string,
-  params: { page?: number; limit?: number } = {}
+  params: { page?: number; limit?: number; start?: string; end?: string } = {}
 ): Promise<{ groups: TransactionGroup[]; totalPages: number }> {
   const raw = await fireflyFetch(`/accounts/${accountId}/transactions`, {
-    searchParams: { page: params.page ?? 1, limit: params.limit ?? 50 },
+    searchParams: {
+      page: params.page ?? 1,
+      limit: params.limit ?? 50,
+      start: params.start,
+      end: params.end,
+    },
     revalidate: 30,
     tags: ["transactions", "accounts"],
   });

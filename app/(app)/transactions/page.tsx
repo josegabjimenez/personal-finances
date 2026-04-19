@@ -32,7 +32,6 @@ export default async function TransactionsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const sp = await searchParams;
-  const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
   const isAllView = sp.view === "all";
 
   // Default to current month when neither view=all nor explicit date range is set
@@ -48,11 +47,15 @@ export default async function TransactionsPage({
   const navYear = parseInt(yearStr) || new Date().getFullYear();
   const navMonth = parseInt(monthStr) || (new Date().getMonth() + 1);
 
+  // Month view: fetch all at once (no pagination). All view: paginate.
+  const page = isAllView ? Math.max(1, parseInt(sp.page ?? "1", 10) || 1) : 1;
+  const limit = isAllView ? 50 : 500;
+
   try {
     const [{ groups, totalPages }, accounts, categories, tags] = await Promise.all([
       listTransactions({
         page,
-        limit: 50,
+        limit,
         type: sp.type,
         start: effectiveStart,
         end: effectiveEnd,
@@ -155,7 +158,7 @@ export default async function TransactionsPage({
             <div className="flex items-center justify-between px-1">
               <span className="text-xs text-muted-foreground">
                 {filtered.length} transaction{filtered.length !== 1 ? "s" : ""}
-                {totalPages > 1 ? " (this page)" : ""}
+                {isAllView && totalPages > 1 ? " (this page)" : ""}
               </span>
               <Money
                 amount={total}
@@ -171,7 +174,7 @@ export default async function TransactionsPage({
             </Card>
           </>
         )}
-        {totalPages > 1 ? (
+        {isAllView && totalPages > 1 ? (
           <div className="flex items-center justify-between text-sm">
             <Button
               asChild
