@@ -1,24 +1,49 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getCategory, listCategoryTransactions } from "@/lib/firefly/queries";
+import { toYMD, startOfMonth, endOfMonth } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Money } from "@/components/common/money";
 import { TransactionRow } from "@/components/transactions/transaction-row";
+import { MonthNav } from "@/components/transactions/month-nav";
 import { Empty } from "@/components/common/empty";
 import { ErrorCard } from "@/components/common/error-card";
 
 export const dynamic = "force-dynamic";
+
+interface SearchParams {
+  view?: "all";
+  start?: string;
+  end?: string;
+  page?: string;
+}
 
 export default async function CategoryDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<SearchParams>;
 }) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
-  const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
+  const isAllView = sp.view === "all";
+
+  // Default to current month
+  let effectiveStart = sp.start;
+  let effectiveEnd = sp.end;
+  if (!isAllView && !sp.start && !sp.end) {
+    effectiveStart = toYMD(startOfMonth());
+    effectiveEnd = toYMD(endOfMonth());
+  }
+
+  const [yearStr, monthStr] = (effectiveStart ?? "").split("-");
+  const navYear = parseInt(yearStr) || new Date().getFullYear();
+  const navMonth = parseInt(monthStr) || (new Date().getMonth() + 1);
+
+  // Month view: fetch all at once. All view: paginate.
+  const page = isAllView ? Math.max(1, parseInt(sp.page ?? "1", 10) || 1) : 1;
+  const limit = isAllView ? 50 : 500;
 
   const backLink = (
     <Link
@@ -33,7 +58,7 @@ export default async function CategoryDetailPage({
   try {
     const [category, { groups, totalPages }] = await Promise.all([
       getCategory(id),
-      listCategoryTransactions(id, { page }),
+      listCategoryTransactions(id, { page, limit, start: effectiveStart, end: effectiveEnd }),
     ]);
 
     const name = category.attributes.name;
@@ -50,7 +75,10 @@ export default async function CategoryDetailPage({
     }, 0);
 
     function pageHref(p: number) {
-      return p > 1 ? `/categories/${id}?page=${p}` : `/categories/${id}`;
+      const params = new URLSearchParams();
+      params.set("view", "all");
+      if (p > 1) params.set("page", String(p));
+      return `/categories/${id}?${params.toString()}`;
     }
 
     return (
@@ -59,6 +87,12 @@ export default async function CategoryDetailPage({
           {backLink}
           <h1 className="text-2xl font-semibold tracking-tight">{name}</h1>
         </div>
+        <MonthNav
+          year={navYear}
+          month={navMonth}
+          isAll={isAllView}
+          baseUrl={`/categories/${id}`}
+        />
         {groups.length === 0 ? (
           <Empty title="No transactions for this category" />
         ) : (
@@ -66,7 +100,7 @@ export default async function CategoryDetailPage({
             <div className="flex items-center justify-between px-1">
               <span className="text-xs text-muted-foreground">
                 {groups.length} transaction{groups.length !== 1 ? "s" : ""}
-                {totalPages > 1 ? " (this page)" : ""}
+                {isAllView && totalPages > 1 ? " (this page)" : ""}
               </span>
               <Money
                 amount={total}
@@ -80,7 +114,7 @@ export default async function CategoryDetailPage({
                 <TransactionRow key={g.id} group={g} />
               ))}
             </Card>
-            {totalPages > 1 && (
+            {isAllView && totalPages > 1 && (
               <div className="flex items-center justify-between text-sm">
                 <Button
                   asChild
