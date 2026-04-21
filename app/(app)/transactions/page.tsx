@@ -1,13 +1,12 @@
-import Link from "next/link";
 import { listTransactions, listAccounts, listCategories, listTags } from "@/lib/firefly/queries";
 import { toYMD, startOfMonth, endOfMonth } from "@/lib/format";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Money } from "@/components/common/money";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { FilterBar } from "@/components/transactions/filter-bar";
 import { MonthNav } from "@/components/transactions/month-nav";
+import { InfiniteTransactionList } from "@/components/transactions/infinite-transaction-list";
 import { Empty } from "@/components/common/empty";
 import { ErrorCard } from "@/components/common/error-card";
 
@@ -23,7 +22,6 @@ interface SearchParams {
   category?: string;
   tag?: string;
   view?: "all";
-  page?: string;
 }
 
 export default async function TransactionsPage({
@@ -47,14 +45,13 @@ export default async function TransactionsPage({
   const navYear = parseInt(yearStr) || new Date().getFullYear();
   const navMonth = parseInt(monthStr) || (new Date().getMonth() + 1);
 
-  // Month view: fetch all at once (no pagination). All view: paginate.
-  const page = isAllView ? Math.max(1, parseInt(sp.page ?? "1", 10) || 1) : 1;
+  // Month view: fetch all at once (no pagination). All view: first page only, then infinite scroll.
   const limit = isAllView ? 50 : 500;
 
   try {
     const [{ groups, totalPages }, accounts, categories, tags] = await Promise.all([
       listTransactions({
-        page,
+        page: 1,
         limit,
         type: sp.type,
         start: effectiveStart,
@@ -65,51 +62,44 @@ export default async function TransactionsPage({
       listTags().catch(() => []),
     ]);
 
+    // Build Firefly proxy URL for infinite scroll (All view)
+    const allFetchUrl = (() => {
+      const params = new URLSearchParams({ limit: "50" });
+      if (sp.type) params.set("type", sp.type);
+      return `/api/firefly/transactions?${params.toString()}`;
+    })();
+
+    // Month view: apply client-side filters to the full fetched batch
     const q = (sp.q ?? "").trim().toLowerCase();
     let filtered = groups;
 
-    if (q) {
-      filtered = filtered.filter((g) => {
-        const s = g.attributes.transactions[0];
-        const hay = [
-          s?.description,
-          s?.source_name,
-          s?.destination_name,
-          s?.category_name,
-          s?.budget_name,
-          ...(s?.tags ?? []),
-          g.attributes.group_title,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        return hay.includes(q);
-      });
+    if (!isAllView) {
+      if (q) {
+        filtered = filtered.filter((g) => {
+          const s = g.attributes.transactions[0];
+          return [
+            s?.description, s?.source_name, s?.destination_name,
+            s?.category_name, s?.budget_name, ...(s?.tags ?? []),
+            g.attributes.group_title,
+          ]
+            .filter(Boolean).join(" ").toLowerCase().includes(q);
+        });
+      }
+      if (sp.account) {
+        filtered = filtered.filter((g) => {
+          const s = g.attributes.transactions[0];
+          return s?.source_name === sp.account || s?.destination_name === sp.account;
+        });
+      }
+      if (sp.category) {
+        filtered = filtered.filter((g) => g.attributes.transactions[0]?.category_name === sp.category);
+      }
+      if (sp.tag) {
+        filtered = filtered.filter((g) => g.attributes.transactions[0]?.tags?.includes(sp.tag!) ?? false);
+      }
     }
 
-    if (sp.account) {
-      filtered = filtered.filter((g) => {
-        const s = g.attributes.transactions[0];
-        return s?.source_name === sp.account || s?.destination_name === sp.account;
-      });
-    }
-
-    if (sp.category) {
-      filtered = filtered.filter((g) => {
-        const s = g.attributes.transactions[0];
-        return s?.category_name === sp.category;
-      });
-    }
-
-    if (sp.tag) {
-      filtered = filtered.filter((g) => {
-        const s = g.attributes.transactions[0];
-        return s?.tags?.includes(sp.tag!) ?? false;
-      });
-    }
-
-    const primaryCurrency =
-      filtered[0]?.attributes.transactions[0]?.currency_code ?? "COP";
+    const primaryCurrency = filtered[0]?.attributes.transactions[0]?.currency_code ?? "COP";
     const total = filtered.reduce((sum, g) => {
       const s = g.attributes.transactions[0];
       if (!s) return sum;
@@ -119,21 +109,6 @@ export default async function TransactionsPage({
       if (s.type === "deposit") return sum + n;
       return sum;
     }, 0);
-
-    function pageHref(newPage: number) {
-      const params = new URLSearchParams();
-      if (sp.q) params.set("q", sp.q);
-      if (sp.type) params.set("type", sp.type);
-      if (effectiveStart) params.set("start", effectiveStart!);
-      if (effectiveEnd) params.set("end", effectiveEnd!);
-      if (sp.account) params.set("account", sp.account);
-      if (sp.category) params.set("category", sp.category);
-      if (sp.tag) params.set("tag", sp.tag);
-      if (isAllView) params.set("view", "all");
-      if (newPage > 1) params.set("page", String(newPage));
-      const qs = params.toString();
-      return `/transactions${qs ? `?${qs}` : ""}`;
-    }
 
     return (
       <div className="space-y-4">
@@ -151,54 +126,42 @@ export default async function TransactionsPage({
           categories={categories.map((c) => ({ id: c.id, name: c.attributes.name }))}
           tags={tags.map((t) => t.attributes.tag)}
         />
-        {filtered.length === 0 ? (
-          <Empty title="No transactions match your filters" />
+
+        {isAllView ? (
+          /* All view — infinite scroll, filters applied client-side as pages load */
+          groups.length === 0 ? (
+            <Empty title="No transactions" />
+          ) : (
+            <InfiniteTransactionList
+              initialGroups={groups}
+              totalPages={totalPages}
+              fetchUrl={allFetchUrl}
+              searchQuery={sp.q}
+              accountFilter={sp.account}
+              categoryFilter={sp.category}
+              tagFilter={sp.tag}
+            />
+          )
         ) : (
-          <>
-            <div className="flex items-center justify-between px-1">
-              <span className="text-xs text-muted-foreground">
-                {filtered.length} transaction{filtered.length !== 1 ? "s" : ""}
-                {isAllView && totalPages > 1 ? " (this page)" : ""}
-              </span>
-              <Money
-                amount={total}
-                currency={primaryCurrency}
-                colorize
-                className="text-sm font-medium"
-              />
-            </div>
-            <Card className="divide-y overflow-hidden p-0">
-              {filtered.map((g) => (
-                <TransactionRow key={g.id} group={g} />
-              ))}
-            </Card>
-          </>
+          /* Month view — full month fetched at once, no pagination */
+          filtered.length === 0 ? (
+            <Empty title="No transactions match your filters" />
+          ) : (
+            <>
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs text-muted-foreground">
+                  {filtered.length} transaction{filtered.length !== 1 ? "s" : ""}
+                </span>
+                <Money amount={total} currency={primaryCurrency} colorize className="text-sm font-medium" />
+              </div>
+              <Card className="divide-y overflow-hidden p-0">
+                {filtered.map((g) => (
+                  <TransactionRow key={g.id} group={g} />
+                ))}
+              </Card>
+            </>
+          )
         )}
-        {isAllView && totalPages > 1 ? (
-          <div className="flex items-center justify-between text-sm">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              aria-disabled={page <= 1}
-            >
-              <Link href={pageHref(page - 1)}>Previous</Link>
-            </Button>
-            <span className="text-xs text-muted-foreground">
-              Page {page} of {totalPages}
-            </span>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages}
-              aria-disabled={page >= totalPages}
-            >
-              <Link href={pageHref(page + 1)}>Next</Link>
-            </Button>
-          </div>
-        ) : null}
       </div>
     );
   } catch (err) {
