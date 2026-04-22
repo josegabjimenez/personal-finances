@@ -39,6 +39,9 @@ export default async function TransactionDetailPage({
       ["To", split.destination_name ?? "—"],
       ["Category", split.category_name ?? "—"],
       ["Budget", split.budget_name ?? "—"],
+      ...(split.tags && split.tags.length > 0
+        ? [["Tags", split.tags.join(", ")] as [string, React.ReactNode]]
+        : []),
       ["Notes", split.notes ?? "—"],
     ];
 
