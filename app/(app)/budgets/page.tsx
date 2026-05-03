@@ -48,7 +48,8 @@ export default async function BudgetsPage() {
         const spent = lim?.spent ?? 0;
         const currency = lim?.currency ?? "USD";
         const pct = amount > 0 ? Math.min(100, (spent / amount) * 100) : 0;
-        return { b, amount, spent, currency, pct };
+        const remaining = amount - spent;
+        return { b, amount, spent, remaining, currency, pct };
       });
 
     return (
@@ -64,7 +65,7 @@ export default async function BudgetsPage() {
           />
         ) : (
           <div className="space-y-3">
-            {rows.map(({ b, amount, spent, currency, pct }) => (
+            {rows.map(({ b, amount, spent, remaining, currency, pct }) => (
               <Card key={b.id}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between gap-2">
@@ -91,8 +92,9 @@ export default async function BudgetsPage() {
                     <span>
                       <Money amount={spent} currency={currency} /> spent
                     </span>
-                    <span>
-                      of <Money amount={amount} currency={currency} />
+                    <span className={remaining < 0 ? "text-danger font-medium" : ""}>
+                      <Money amount={Math.abs(remaining)} currency={currency} />{" "}
+                      {remaining < 0 ? "over" : "left"}
                     </span>
                   </div>
                 </CardContent>
