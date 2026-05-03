@@ -166,7 +166,7 @@ export const budgetLimitSchema = z.object({
       currency_code: z.string().optional().nullable(),
       start: z.string(),
       end: z.string(),
-      spent: z.string().optional().nullable(),
+      spent: z.array(budgetSpentEntrySchema).optional().nullable(),
     })
     .passthrough(),
 });
