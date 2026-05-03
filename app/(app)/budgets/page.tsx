@@ -26,7 +26,10 @@ export default async function BudgetsPage() {
     for (const limit of limits) {
       const bid = limit.attributes.budget_id;
       const amount = parseFloat(limit.attributes.amount);
-      const spent = Math.abs(parseFloat(limit.attributes.spent ?? "0") || 0);
+      const spent = (limit.attributes.spent ?? []).reduce(
+        (s, e) => s + Math.abs(parseFloat(e.sum ?? "0") || 0),
+        0
+      );
       const currency = limit.attributes.currency_code ?? "USD";
       const existing = limitByBudget.get(bid);
       if (existing) {
