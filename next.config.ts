@@ -6,8 +6,6 @@ const withSerwist = withSerwistInit({
   swDest: "public/sw.js",
   // Disable SW in dev so HMR isn't intercepted.
   disable: process.env.NODE_ENV === "development",
-  cacheOnNavigation: true,
-  reloadOnOnline: true,
 });
 
 const nextConfig: NextConfig = {
