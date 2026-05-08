@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   currentMonthRange,
   listBudgetLimits,
@@ -66,7 +67,8 @@ export default async function BudgetsPage() {
         ) : (
           <div className="space-y-3">
             {rows.map(({ b, amount, spent, remaining, currency, pct }) => (
-              <Card key={b.id}>
+              <Card key={b.id} className="overflow-hidden">
+                <Link href={`/budgets/${b.id}`} className="block hover:bg-accent/40 transition-colors">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between gap-2">
                     <CardTitle className="text-foreground">
@@ -98,6 +100,7 @@ export default async function BudgetsPage() {
                     </span>
                   </div>
                 </CardContent>
+                </Link>
               </Card>
             ))}
           </div>

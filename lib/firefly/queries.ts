@@ -6,6 +6,7 @@ import {
   accountsListSchema,
   aboutUserSchema,
   budgetLimitsListSchema,
+  budgetSchema,
   budgetsListSchema,
   categoriesListSchema,
   categorySchema,
@@ -147,6 +148,32 @@ export async function listBudgets(): Promise<Budget[]> {
     tags: ["budgets"],
   });
   return budgetsListSchema.parse(raw).data;
+}
+
+export async function getBudget(id: string): Promise<Budget> {
+  const raw = await fireflyFetch(`/budgets/${id}`, {
+    revalidate: 120,
+    tags: ["budgets"],
+  });
+  return z.object({ data: budgetSchema }).parse(raw).data;
+}
+
+export async function listBudgetTransactions(
+  budgetId: string,
+  params: { page?: number; limit?: number; start?: string; end?: string } = {}
+): Promise<{ groups: TransactionGroup[]; totalPages: number }> {
+  const raw = await fireflyFetch(`/budgets/${budgetId}/transactions`, {
+    searchParams: {
+      page: params.page ?? 1,
+      limit: params.limit ?? 50,
+      start: params.start,
+      end: params.end,
+    },
+    revalidate: 30,
+    tags: ["transactions", "budgets"],
+  });
+  const parsed = transactionsListSchema.parse(raw);
+  return { groups: parsed.data, totalPages: parsed.meta?.pagination?.total_pages ?? 1 };
 }
 
 export async function listBudgetLimits(start: Date, end: Date): Promise<BudgetLimit[]> {
