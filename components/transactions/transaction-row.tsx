@@ -14,9 +14,9 @@ function iconFor(type: string) {
     case "withdrawal":
       return <ArrowUpRight className="h-4 w-4 text-danger" />;
     case "transfer":
-      return <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />;
+      return <ArrowRightLeft className="h-4 w-4 text-transfer" />;
     default:
-      return <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />;
+      return <ArrowRightLeft className="h-4 w-4 text-transfer" />;
   }
 }
 
@@ -68,8 +68,8 @@ export function TransactionRow({ group }: { group: TransactionGroup }) {
         <Money
           amount={amount}
           currency={split.currency_code ?? "USD"}
-          colorize
-          className="text-sm"
+          colorize={split.type !== "transfer"}
+          className={split.type === "transfer" ? "text-sm text-transfer" : "text-sm"}
         />
         <span className="text-[11px] text-muted-foreground tabular-nums">
           {formatDateShort(split.date)}
