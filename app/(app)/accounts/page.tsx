@@ -11,6 +11,22 @@ import type { Account } from "@/lib/firefly/types";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Accounts" };
 
+type AccountsPageData =
+  | { ok: true; assets: Account[]; liabilities: Account[] }
+  | { ok: false; error: string | undefined };
+
+async function getAccountsPageData(): Promise<AccountsPageData> {
+  try {
+    const [assets, liabilities] = await Promise.all([
+      listAccounts("asset"),
+      listAccounts("liability"),
+    ]);
+    return { ok: true, assets, liabilities };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : undefined };
+  }
+}
+
 function AccountSection({
   title,
   accounts,
@@ -75,33 +91,30 @@ function AccountSection({
 }
 
 export default async function AccountsPage() {
-  try {
-    const [assets, liabilities] = await Promise.all([
-      listAccounts("asset"),
-      listAccounts("liability"),
-    ]);
-    const isEmpty = assets.length === 0 && liabilities.length === 0;
+  const data = await getAccountsPageData();
 
+  if (!data.ok) {
     return (
       <div className="space-y-6">
         <PageHeader title="Accounts" />
-        {isEmpty ? (
-          <Empty title="No accounts yet" />
-        ) : (
-          <>
-            <AccountSection title="Assets" accounts={assets} />
-            <AccountSection title="Liabilities" accounts={liabilities} />
-          </>
-        )}
-      </div>
-    );
-  } catch (err) {
-    const message = err instanceof Error ? err.message : undefined;
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Accounts" />
-        <ErrorCard message={message} />
+        <ErrorCard message={data.error} />
       </div>
     );
   }
+
+  const isEmpty = data.assets.length === 0 && data.liabilities.length === 0;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader title="Accounts" />
+      {isEmpty ? (
+        <Empty title="No accounts yet" />
+      ) : (
+        <>
+          <AccountSection title="Assets" accounts={data.assets} />
+          <AccountSection title="Liabilities" accounts={data.liabilities} />
+        </>
+      )}
+    </div>
+  );
 }

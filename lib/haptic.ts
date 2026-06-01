@@ -1,6 +1,10 @@
+export type HapticStyle = "light" | "medium";
+
 // navigator.vibrate() works on Android PWA/Chrome.
-// iOS Safari does not implement the Vibration API — calls are silently ignored.
-export function haptic(style: "light" | "medium" = "light") {
+// iOS Safari/WebKit still does not expose a true haptics API for web PWAs,
+// so this gracefully no-ops there while preserving tactile feedback on
+// platforms that support the Vibration API.
+export function haptic(style: HapticStyle = "light") {
   if (typeof navigator === "undefined" || !("vibrate" in navigator)) return;
   try {
     navigator.vibrate(style === "light" ? 8 : 18);
