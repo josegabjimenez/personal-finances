@@ -11,11 +11,25 @@ import { Money } from "@/components/common/money";
 import { Empty } from "@/components/common/empty";
 import { ErrorCard } from "@/components/common/error-card";
 import { cn } from "@/lib/utils";
+import type { Budget } from "@/lib/firefly/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Budgets" };
 
-export default async function BudgetsPage() {
+type BudgetRow = {
+  b: Budget;
+  amount: number;
+  spent: number;
+  remaining: number;
+  currency: string;
+  pct: number;
+};
+
+type BudgetsPageData =
+  | { ok: true; rows: BudgetRow[] }
+  | { ok: false; error: string | undefined };
+
+async function getBudgetsPageData(): Promise<BudgetsPageData> {
   try {
     const { start, end } = currentMonthRange();
     const [budgets, limits] = await Promise.all([
@@ -23,7 +37,10 @@ export default async function BudgetsPage() {
       listBudgetLimits(start, end),
     ]);
 
-    const limitByBudget = new Map<string, { amount: number; currency: string; spent: number }>();
+    const limitByBudget = new Map<
+      string,
+      { amount: number; currency: string; spent: number }
+    >();
     for (const limit of limits) {
       const bid = limit.attributes.budget_id;
       const amount = parseFloat(limit.attributes.amount);
@@ -53,22 +70,43 @@ export default async function BudgetsPage() {
         return { b, amount, spent, remaining, currency, pct };
       });
 
+    return { ok: true, rows };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : undefined };
+  }
+}
+
+export default async function BudgetsPage() {
+  const data = await getBudgetsPageData();
+
+  if (!data.ok) {
     return (
-      <div className="space-y-4">
-        <PageHeader
-          title="Budgets"
-          subtitle="This month's spending against your limits."
+      <div className="space-y-6">
+        <PageHeader title="Budgets" />
+        <ErrorCard message={data.error} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <PageHeader
+        title="Budgets"
+        subtitle="This month's spending against your limits."
+      />
+      {data.rows.length === 0 ? (
+        <Empty
+          title="No active budgets"
+          description="Create budgets in Firefly III to track spending limits."
         />
-        {rows.length === 0 ? (
-          <Empty
-            title="No active budgets"
-            description="Create budgets in Firefly III to track spending limits."
-          />
-        ) : (
-          <div className="space-y-3">
-            {rows.map(({ b, amount, spent, remaining, currency, pct }) => (
-              <Card key={b.id} className="overflow-hidden">
-                <Link href={`/budgets/${b.id}`} className="block hover:bg-accent/40 transition-colors">
+      ) : (
+        <div className="space-y-3">
+          {data.rows.map(({ b, amount, spent, remaining, currency, pct }) => (
+            <Card key={b.id} className="overflow-hidden">
+              <Link
+                href={`/budgets/${b.id}`}
+                className="block transition-colors hover:bg-accent/40"
+              >
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between gap-2">
                     <CardTitle className="text-foreground">
@@ -94,26 +132,19 @@ export default async function BudgetsPage() {
                     <span>
                       <Money amount={spent} currency={currency} /> spent
                     </span>
-                    <span className={remaining < 0 ? "text-danger font-medium" : ""}>
+                    <span
+                      className={remaining < 0 ? "text-danger font-medium" : ""}
+                    >
                       <Money amount={Math.abs(remaining)} currency={currency} />{" "}
                       {remaining < 0 ? "over" : "left"}
                     </span>
                   </div>
                 </CardContent>
-                </Link>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  } catch (err) {
-    const message = err instanceof Error ? err.message : undefined;
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Budgets" />
-        <ErrorCard message={message} />
-      </div>
-    );
-  }
+              </Link>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }

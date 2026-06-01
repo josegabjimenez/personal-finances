@@ -92,6 +92,17 @@ export function InfiniteTransactionList({
   fetchUrlRef.current = fetchUrl;
 
   useEffect(() => {
+    const initialDone = totalPages <= 1;
+    setAllGroups(initialGroups);
+    setDone(initialDone);
+    setIsLoading(false);
+    pageRef.current = 1;
+    loadingRef.current = false;
+    doneRef.current = initialDone;
+    fetchUrlRef.current = fetchUrl;
+  }, [fetchUrl, initialGroups, totalPages]);
+
+  useEffect(() => {
     if (doneRef.current) return;
 
     async function loadMore() {
@@ -133,7 +144,7 @@ export function InfiniteTransactionList({
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchUrl]);
 
   const displayed = applyFilters(allGroups, {
     q: searchQuery,

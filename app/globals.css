@@ -90,6 +90,23 @@
     font-variant-numeric: tabular-nums;
     font-family: var(--font-mono);
   }
+
+  @media (hover: none) and (pointer: coarse) {
+    :where(a[href], button, [role="button"], summary, [data-haptic]) {
+      touch-action: manipulation;
+      transition-property: color, background-color, border-color, opacity, transform;
+      transition-duration: 120ms;
+      transition-timing-function: ease-out;
+    }
+
+    :where(a[href], button, [role="button"], summary, [data-haptic]):not(
+        [disabled],
+        [aria-disabled="true"],
+        [data-disabled]
+      ):active {
+      transform: scale(0.985);
+    }
+  }
 }
 
 @layer utilities {
