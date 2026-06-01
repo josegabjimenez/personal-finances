@@ -46,7 +46,8 @@ export default async function CategoryDetailPage({
   const backLink = (
     <Link
       href="/categories"
-      className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      data-haptic="medium"
+      className="inline-flex items-center gap-1 rounded-full px-2 py-1 -ml-2 text-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground active:bg-accent active:text-foreground"
     >
       <ArrowLeft className="h-4 w-4" />
       Categories
