@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 import { AlertCircle, ArrowDownToLine, ArrowUpRight, CheckCircle2, ChevronRight, CreditCard, Landmark, PiggyBank, ShieldCheck, WalletCards } from "lucide-react";
-import { getDebtDashboard, normalizeDebtPeriod, shiftDebtPeriod, type CreditCardDebtMetrics, type DebtBreakdownItem, type DebtDashboardResponse, type DebtRecentTransaction, type OtherLiabilityDebt } from "@/lib/firefly/debts";
+import { getDebtDashboard, type CreditCardDebtMetrics, type DebtBreakdownItem, type DebtDashboardResponse, type DebtRecentTransaction, type OtherLiabilityDebt } from "@/lib/firefly/debts";
 import { formatDateShort, formatMoney, formatPercent } from "@/lib/format";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Money } from "@/components/common/money";
 import { ErrorCard } from "@/components/common/error-card";
 import { Empty } from "@/components/common/empty";
+import { MonthNav } from "@/components/transactions/month-nav";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -37,13 +38,19 @@ const TX_KIND_LABELS: Record<DebtRecentTransaction["kind"], string> = {
   interest_fee: "Interest & fees",
 };
 
-function periodHref(period: { start: string; end: string }) {
-  return `/debts?start=${period.start}&end=${period.end}`;
-}
-
 function detailHref(cardKey: string, period: { start: string; end: string }, extra?: Record<string, string>) {
   const params = new URLSearchParams({ start: period.start, end: period.end, ...extra });
   return `/debts/${cardKey}?${params.toString()}`;
+}
+
+function navDateParts(start: string) {
+  const [year, month] = start.split("-").map(Number);
+  return { year, month };
+}
+
+function periodLabel(start: string) {
+  const { year, month } = navDateParts(start);
+  return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date(year, month - 1, 1));
 }
 
 function StatCard({ title, amount, currency, icon: Icon, subtitle, tone }: { title: string; amount: number; currency: string; icon: ComponentType<{ className?: string }>; subtitle?: string; tone?: "danger" | "success" | "warning" }) {
@@ -63,25 +70,10 @@ function StatCard({ title, amount, currency, icon: Icon, subtitle, tone }: { tit
   );
 }
 
-function PeriodControls({ start, end }: { start: string; end: string }) {
-  const current = normalizeDebtPeriod();
-  const previous = shiftDebtPeriod({ start, end }, -1);
-  const next = shiftDebtPeriod({ start, end }, 1);
+function DebtMonthNav({ start }: { start: string }) {
+  const { year, month } = navDateParts(start);
   return (
-    <Card className="p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Selected period</p>
-          <p className="text-sm font-medium">{start} → {end}</p>
-          <p className="text-xs text-muted-foreground">Use the links below or pass ?start=YYYY-MM-DD&end=YYYY-MM-DD to inspect another range.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link className="rounded-full border px-3 py-1.5 text-xs font-medium hover:bg-accent" href={periodHref(previous)}>Previous month</Link>
-          <Link className="rounded-full border px-3 py-1.5 text-xs font-medium hover:bg-accent" href={periodHref(current)}>Current month</Link>
-          <Link className="rounded-full border px-3 py-1.5 text-xs font-medium hover:bg-accent" href={periodHref(next)}>Next month</Link>
-        </div>
-      </div>
-    </Card>
+    <MonthNav year={year} month={month} isAll={false} baseUrl="/debts" locale="en-US" labelAction="none" />
   );
 }
 
@@ -153,9 +145,9 @@ function CardMetrics({ card, period }: { card: CreditCardDebtMetrics; period: { 
             </CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">Reserve account: {card.reserveName}</p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Link href={detailHref(card.key, period)} className="rounded-full border px-2.5 py-1 text-xs font-medium hover:bg-accent">Details</Link>
+          <div className="flex shrink-0 flex-col items-end gap-1.5 sm:flex-row sm:items-center sm:gap-2">
             <span className={cn("rounded-full border px-2.5 py-1 text-xs font-medium", STATUS_STYLES[card.status])}>{STATUS_LABELS[card.status]}</span>
+            <Link href={detailHref(card.key, period)} className="inline-flex items-center gap-0.5 text-xs font-medium text-muted-foreground hover:text-foreground">Details <ChevronRight className="h-3.5 w-3.5" /></Link>
           </div>
         </div>
       </CardHeader>
@@ -249,9 +241,9 @@ export default async function DebtsPage({ searchParams }: { searchParams: Promis
   const data = result.data;
   const period = { start: data.monthStart, end: data.monthEnd };
   return (
-    <div className="space-y-6">
-      <PageHeader title="Debts & Credit" subtitle="Credit card debt coverage, period spending, payments, reservations, and liabilities." />
-      <PeriodControls start={data.monthStart} end={data.monthEnd} />
+    <div className="space-y-4">
+      <PageHeader title="Debts & Credit" subtitle="Credit card coverage, monthly spending, payments, and liabilities." />
+      <DebtMonthNav start={data.monthStart} />
 
       <section className="grid gap-3 sm:grid-cols-2">
         <StatCard title="Total debt" amount={data.totals.totalDebt} currency={data.currency} icon={Landmark} tone="danger" subtitle="Credit cards + other liabilities" />
@@ -271,8 +263,8 @@ export default async function DebtsPage({ searchParams }: { searchParams: Promis
 
       {data.transactions.length === 0 ? (
         <Card className="border-dashed p-4">
-          <p className="text-sm font-medium">No credit card transactions found for {data.monthStart} → {data.monthEnd}.</p>
-          <p className="mt-1 text-xs text-muted-foreground">Try the previous month or pass a custom ?start=YYYY-MM-DD&end=YYYY-MM-DD range if Firefly has card purchases in another period.</p>
+          <p className="text-sm font-medium">No credit card transactions found for {periodLabel(data.monthStart)}.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Try the previous month if Firefly has card purchases in another period.</p>
         </Card>
       ) : null}
 
