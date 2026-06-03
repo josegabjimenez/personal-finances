@@ -4,17 +4,24 @@ import { endOfMonth, startOfMonth, toYMD } from "@/lib/format";
 import { fireflyFetch } from "./client";
 import { accountsListSchema, transactionsListSchema, type Account, type TransactionGroup, type TransactionSplit } from "./types";
 
-const CREDIT_CARDS = [
-  { key: "tc1", name: "TC1 - Deuda", accountId: "88", reserveName: "Savings for TC1" },
-  { key: "tc2", name: "TC2 - Deuda", accountId: "89", reserveName: "Savings for TC 2" },
+export const CREDIT_CARDS = [
+  { key: "tc1", label: "TC1", name: "TC1 - Deuda", accountId: "88", reserveName: "Savings for TC1" },
+  { key: "tc2", label: "TC2", name: "TC2 - Deuda", accountId: "89", reserveName: "Savings for TC 2" },
 ] as const;
 
 const DEFAULT_CURRENCY = "COP";
-const INTEREST_FEE_RE = /inter[eé]s|intereses|comisi[oó]n|cuota\s+manejo|seguro|penalidad/i;
+const INTEREST_FEE_RE = /inter[eé]s|intereses|interest|fee|fees|comisi[oó]n|commission|cuota\s+manejo|seguro|insurance|penalidad|penalty/i;
+const UNASSIGNED = "Unassigned";
 
+export type CreditCardKey = (typeof CREDIT_CARDS)[number]["key"];
 type CreditCardConfig = (typeof CREDIT_CARDS)[number];
 
 type DebtStatus = "covered" | "under_reserved" | "over_reserved" | "no_debt";
+
+export interface DebtPeriod {
+  start: string;
+  end: string;
+}
 
 export interface DebtBreakdownItem {
   name: string;
@@ -24,20 +31,25 @@ export interface DebtBreakdownItem {
 
 export interface DebtRecentTransaction {
   id: string;
+  groupId: string;
   date: string;
   description: string;
   type: string;
   amount: number;
   currency: string;
+  cardKey: CreditCardKey;
+  cardName: string;
   sourceName?: string | null;
   destinationName?: string | null;
   categoryName?: string | null;
   budgetName?: string | null;
+  tags?: string[] | null;
   kind: "purchase" | "reservation" | "payment" | "interest_fee";
 }
 
 export interface CreditCardDebtMetrics {
-  key: string;
+  key: CreditCardKey;
+  label: string;
   name: string;
   accountId: string;
   reserveName: string;
@@ -56,6 +68,7 @@ export interface CreditCardDebtMetrics {
   byCategory: DebtBreakdownItem[];
   byBudget: DebtBreakdownItem[];
   recentTransactions: DebtRecentTransaction[];
+  transactions: DebtRecentTransaction[];
 }
 
 export interface OtherLiabilityDebt {
@@ -72,6 +85,7 @@ export interface DebtDashboardResponse {
   monthEnd: string;
   currency: string;
   cards: CreditCardDebtMetrics[];
+  transactions: DebtRecentTransaction[];
   otherLiabilities: OtherLiabilityDebt[];
   missingAccounts: string[];
   totals: {
@@ -84,6 +98,37 @@ export interface DebtDashboardResponse {
     monthlyInterestFees: number;
     otherLiabilitiesDebt: number;
   };
+}
+
+export function defaultDebtPeriod(now = new Date()): DebtPeriod {
+  return { start: toYMD(startOfMonth(now)), end: toYMD(endOfMonth(now)) };
+}
+
+export function monthPeriodFromYMD(ymd: string): DebtPeriod | null {
+  const match = /^(\d{4})-(\d{2})/.exec(ymd);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const monthIndex = Number(match[2]) - 1;
+  if (!Number.isInteger(year) || monthIndex < 0 || monthIndex > 11) return null;
+  const month = new Date(year, monthIndex, 1);
+  return { start: toYMD(startOfMonth(month)), end: toYMD(endOfMonth(month)) };
+}
+
+export function normalizeDebtPeriod(input?: { start?: string | null; end?: string | null; month?: string | null }, now = new Date()): DebtPeriod {
+  const fromMonth = input?.month ? monthPeriodFromYMD(input.month) : null;
+  if (fromMonth) return fromMonth;
+
+  const start = input?.start && /^\d{4}-\d{2}-\d{2}$/.test(input.start) ? input.start : null;
+  const end = input?.end && /^\d{4}-\d{2}-\d{2}$/.test(input.end) ? input.end : null;
+  if (start && end && start <= end) return { start, end };
+  if (start) return { start, end: toYMD(endOfMonth(new Date(`${start}T00:00:00`))) };
+  return defaultDebtPeriod(now);
+}
+
+export function shiftDebtPeriod(period: DebtPeriod, months: number): DebtPeriod {
+  const d = new Date(`${period.start}T00:00:00`);
+  const shifted = new Date(d.getFullYear(), d.getMonth() + months, 1);
+  return { start: toYMD(startOfMonth(shifted)), end: toYMD(endOfMonth(shifted)) };
 }
 
 function parseMoney(value: string | number | null | undefined) {
@@ -146,15 +191,21 @@ function flattenSplits(groups: TransactionGroup[]) {
 }
 
 function addBreakdown(map: Map<string, DebtBreakdownItem>, name: string | null | undefined, amount: number) {
-  const key = name?.trim() || "Sin asignar";
+  const key = name?.trim() || UNASSIGNED;
   const current = map.get(key) ?? { name: key, amount: 0, count: 0 };
   current.amount += amount;
   current.count += 1;
   map.set(key, current);
 }
 
-function sortedBreakdown(map: Map<string, DebtBreakdownItem>) {
-  return [...map.values()].sort((a, b) => b.amount - a.amount).slice(0, 8);
+function sortedBreakdown(map: Map<string, DebtBreakdownItem>, limit?: number) {
+  const items = [...map.values()].sort((a, b) => b.amount - a.amount);
+  return typeof limit === "number" ? items.slice(0, limit) : items;
+}
+
+function descriptionMentionsCard(description: string, card: CreditCardConfig) {
+  const normalized = description.toLocaleLowerCase("es-CO");
+  return normalized.includes(`(${card.label.toLocaleLowerCase("es-CO")})`) || normalized.includes(card.label.toLocaleLowerCase("es-CO"));
 }
 
 function classifyCardTransaction(split: TransactionSplit, card: CreditCardConfig) {
@@ -162,6 +213,9 @@ function classifyCardTransaction(split: TransactionSplit, card: CreditCardConfig
   if (split.type === "withdrawal" && namesEqual(split.source_name, card.name)) {
     if (INTEREST_FEE_RE.test(description)) return "interest_fee" as const;
     return "purchase" as const;
+  }
+  if (split.type === "withdrawal" && descriptionMentionsCard(description, card) && INTEREST_FEE_RE.test(description)) {
+    return "interest_fee" as const;
   }
   if (split.type === "transfer" && namesEqual(split.destination_name, card.reserveName)) {
     return "reservation" as const;
@@ -192,7 +246,7 @@ function buildCardMetrics(
   const reserved = absMoney(reserve?.attributes.current_balance);
   const byCategory = new Map<string, DebtBreakdownItem>();
   const byBudget = new Map<string, DebtBreakdownItem>();
-  const recentTransactions: DebtRecentTransaction[] = [];
+  const transactions: DebtRecentTransaction[] = [];
   let monthlyPurchases = 0;
   let monthlyPayments = 0;
   let monthlyReservations = 0;
@@ -208,7 +262,7 @@ function buildCardMetrics(
       addBreakdown(byBudget, split.budget_name, amount);
     } else if (kind === "interest_fee") {
       monthlyInterestFees += amount;
-      addBreakdown(byCategory, split.category_name ?? "Intereses y comisiones", amount);
+      addBreakdown(byCategory, split.category_name ?? "Interest & fees", amount);
       addBreakdown(byBudget, split.budget_name, amount);
     } else if (kind === "payment") {
       monthlyPayments += amount;
@@ -216,26 +270,31 @@ function buildCardMetrics(
       monthlyReservations += amount;
     }
 
-    recentTransactions.push({
+    transactions.push({
       id: splitId || groupId,
+      groupId,
       date: split.date,
-      description: split.description || "Sin descripción",
+      description: split.description || "No description",
       type: split.type,
       amount,
       currency: split.currency_code ?? currency,
+      cardKey: card.key,
+      cardName: card.name,
       sourceName: split.source_name,
       destinationName: split.destination_name,
       categoryName: split.category_name,
       budgetName: split.budget_name,
+      tags: split.tags,
       kind,
     });
   }
 
-  recentTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const gap = debt - reserved;
   return {
     key: card.key,
+    label: card.label,
     name: card.name,
     accountId: card.accountId,
     reserveName: card.reserveName,
@@ -253,20 +312,21 @@ function buildCardMetrics(
     monthlyInterestFees,
     byCategory: sortedBreakdown(byCategory),
     byBudget: sortedBreakdown(byBudget),
-    recentTransactions: recentTransactions.slice(0, 6),
+    recentTransactions: transactions.slice(0, 6),
+    transactions,
   };
 }
 
-export async function getDebtDashboard(now = new Date()): Promise<DebtDashboardResponse> {
-  const monthStart = toYMD(startOfMonth(now));
-  const monthEnd = toYMD(endOfMonth(now));
+export async function getDebtDashboard(input?: { start?: string | null; end?: string | null; month?: string | null }, now = new Date()): Promise<DebtDashboardResponse> {
+  const period = normalizeDebtPeriod(input, now);
   const [liabilities, assets, transactionGroups] = await Promise.all([
     listAccountsByType("liability", 100),
     listAccountsByType("asset", 200),
-    listTransactionsForRange(monthStart, monthEnd, 100),
+    listTransactionsForRange(period.start, period.end, 100),
   ]);
 
   const cards = CREDIT_CARDS.map((card) => buildCardMetrics(card, liabilities, assets, transactionGroups));
+  const transactions = cards.flatMap((card) => card.transactions).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const cardIds = new Set(cards.map((card) => card.accountId));
   const cardNames = new Set(cards.map((card) => card.name.toLocaleLowerCase("es-CO")));
   const otherLiabilities = liabilities
@@ -292,10 +352,11 @@ export async function getDebtDashboard(now = new Date()): Promise<DebtDashboardR
 
   return {
     asOf: now.toISOString(),
-    monthStart,
-    monthEnd,
+    monthStart: period.start,
+    monthEnd: period.end,
     currency,
     cards,
+    transactions,
     otherLiabilities,
     missingAccounts,
     totals: {
