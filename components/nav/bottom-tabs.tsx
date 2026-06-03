@@ -29,7 +29,7 @@ export function BottomTabs() {
       aria-label="Primary"
       className="fixed bottom-0 inset-x-0 z-40 border-t bg-card/95 backdrop-blur md:hidden"
     >
-      <div className="mx-auto grid max-w-2xl grid-cols-4 pb-safe">
+      <div className="mx-auto grid max-w-2xl grid-cols-5 pb-safe">
         {PRIMARY_NAV.map((item) => {
           const active = isActive(pathname, item.href);
           const Icon = item.icon;
@@ -39,24 +39,24 @@ export function BottomTabs() {
               href={item.href}
               prefetch
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors",
+                "flex min-w-0 flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] font-medium leading-none transition-colors",
                 active ? "text-foreground" : "text-muted-foreground"
               )}
             >
-              <Icon className={cn("h-5 w-5", active && "stroke-[2.3]")} />
-              <span>{item.label}</span>
+              <Icon className={cn("h-[18px] w-[18px]", active && "stroke-[2.3]")} />
+              <span className="max-w-full truncate whitespace-nowrap">{item.label}</span>
             </Link>
           );
         })}
         <Sheet>
           <SheetTrigger
             className={cn(
-              "flex flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-medium",
+              "flex min-w-0 flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] font-medium leading-none",
               moreActive ? "text-foreground" : "text-muted-foreground"
             )}
           >
-            <MoreHorizontal className="h-5 w-5" />
-            <span>More</span>
+            <MoreHorizontal className="h-[18px] w-[18px]" />
+            <span className="max-w-full truncate whitespace-nowrap">More</span>
           </SheetTrigger>
           <SheetContent side="bottom" className="space-y-3">
             <SheetHeader>
