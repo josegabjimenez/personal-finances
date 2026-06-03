@@ -233,7 +233,7 @@ function buildCardMetrics(
 
   recentTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const gap = Math.max(debt - reserved, 0);
+  const gap = debt - reserved;
   return {
     key: card.key,
     name: card.name,

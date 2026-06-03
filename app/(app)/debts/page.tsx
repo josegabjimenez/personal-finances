@@ -169,8 +169,8 @@ function CardMetrics({ card }: { card: CreditCardDebtMetrics }) {
           </div>
           <Progress value={coveragePct} indicatorClassName={card.status === "under_reserved" ? "bg-warning" : card.status === "covered" ? "bg-success" : "bg-foreground"} />
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Faltante</span>
-            <Money amount={card.gap} currency={card.currency} className={cn("text-xs", card.gap > 0 && "text-warning")} />
+            <span>{card.gap < 0 ? "Excedente" : "Faltante"}</span>
+            <Money amount={Math.abs(card.gap)} currency={card.currency} className={cn("text-xs", card.gap > 0 && "text-warning", card.gap < 0 && "text-success")} />
           </div>
         </div>
 
