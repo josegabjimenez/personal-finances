@@ -1,4 +1,5 @@
 import {
+  CreditCard,
   LayoutDashboard,
   ListOrdered,
   Wallet,
@@ -25,6 +26,7 @@ export const NAV_ITEMS: NavItem[] = [
     primary: true,
   },
   { href: "/accounts", label: "Accounts", icon: Wallet, primary: true },
+  { href: "/debts", label: "Deudas", icon: CreditCard, primary: true },
   { href: "/budgets", label: "Budgets", icon: Target },
   { href: "/categories", label: "Categories", icon: Shapes },
   { href: "/piggy-banks", label: "Piggy banks", icon: PiggyBank },

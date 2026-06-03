@@ -5,6 +5,7 @@ A fast, mobile-first PWA that reads your self-hosted [Firefly III](https://www.f
 - **Dashboard** — net worth, this month's income vs expenses, recent activity
 - **Transactions** — list with search, filter by type and date range, pagination
 - **Accounts** — balances grouped by assets and liabilities
+- **Deudas/Crédito** — credit-card debt control for TC1/TC2, savings coverage, monthly purchases/payments/reservations/fees, category/budget breakdowns, and other liabilities
 - **Budgets** — spent vs limit for the current period, with progress bars
 - **Categories** — donut chart + breakdown of where your money went
 - **Piggy banks** — progress toward savings goals
@@ -67,6 +68,7 @@ Browser ─► Next.js route handler ─► Firefly III REST API
 - `app/api/auth/login` compares the submitted password against `APP_PASSWORD` with constant-time equality, then issues an HMAC-signed HTTP-only cookie (`jose`).
 - `app/api/firefly/[...path]` is an allow-listed passthrough that injects the bearer token server-side. Only a curated list of Firefly endpoints is forwarded.
 - RSC pages fetch from Firefly during the server render for fast first paint; TanStack Query re-validates in the background when the user revisits a page.
+- `/debts` reads Firefly server-side as the source of truth for liabilities, TC reserve asset accounts, and monthly transactions; credit-card payments/reservations are interpreted as debt movement, not new spending.
 - Serwist provides the service worker — caches static assets and slow-changing API responses (accounts, budgets, categories) with stale-while-revalidate; fast-changing ones (transactions, summary) use network-first with a 4s timeout.
 
 ## Scripts
