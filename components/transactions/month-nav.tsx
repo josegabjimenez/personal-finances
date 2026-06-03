@@ -53,6 +53,7 @@ export function MonthNav({
     const sp = new URLSearchParams(searchParams.toString());
     sp.set("start", monthStart(y, m));
     sp.set("end", monthEnd(y, m));
+    sp.delete("month");
     sp.delete("view");
     sp.delete("page");
     router.push(`${baseUrl}?${sp.toString()}`);
