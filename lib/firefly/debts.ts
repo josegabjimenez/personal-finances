@@ -9,6 +9,11 @@ export const CREDIT_CARDS = [
   { key: "tc2", label: "TC2", name: "TC2 - Deuda", accountId: "89", reserveName: "Savings for TC 2" },
 ] as const;
 
+export const LOAN_DEBTS = [
+  { accountId: "90", name: "Lulo Bank - Crédito", purpose: "MacBook / phone", monthlyInterestRate: 0.0187, monthlyPayment: 206_004 },
+  { accountId: "93", name: "préstamo doña Lily - electrodomésticos", purpose: "Appliances", monthlyInterestRate: 0, monthlyPayment: 500_000 },
+] as const;
+
 const DEFAULT_CURRENCY = "COP";
 const INTEREST_FEE_RE = /inter[eé]s|intereses|interest|fee|fees|comisi[oó]n|commission|cuota\s+manejo|seguro|insurance|penalidad|penalty/i;
 const UNASSIGNED = "Unassigned";
@@ -17,6 +22,7 @@ export type CreditCardKey = (typeof CREDIT_CARDS)[number]["key"];
 type CreditCardConfig = (typeof CREDIT_CARDS)[number];
 
 type DebtStatus = "covered" | "under_reserved" | "over_reserved" | "no_debt";
+type LoanPaymentStatus = "paid_this_month" | "partial_payment" | "due" | "unknown";
 
 export interface DebtPeriod {
   start: string;
@@ -79,23 +85,56 @@ export interface OtherLiabilityDebt {
   liabilityType?: string | null;
 }
 
+export interface LoanPeriodPayment {
+  id: string;
+  groupId: string;
+  date: string;
+  description: string;
+  amount: number;
+  currency: string;
+  sourceName?: string | null;
+  destinationName?: string | null;
+}
+
+export interface LoanDebtMetrics extends OtherLiabilityDebt {
+  purpose?: string | null;
+  monthlyPayment?: number | null;
+  monthlyInterestRate?: number | null;
+  estimatedMonthlyInterest: number;
+  estimatedMonthlyPrincipal: number;
+  estimatedMonthsRemaining: number | null;
+  paymentsThisPeriod: number;
+  latestPeriodPayment: LoanPeriodPayment | null;
+  status: LoanPaymentStatus;
+}
+
 export interface DebtDashboardResponse {
   asOf: string;
   monthStart: string;
   monthEnd: string;
   currency: string;
   cards: CreditCardDebtMetrics[];
+  loans: LoanDebtMetrics[];
   transactions: DebtRecentTransaction[];
   otherLiabilities: OtherLiabilityDebt[];
   missingAccounts: string[];
   totals: {
     totalDebt: number;
+    creditCardDebt: number;
+    loanDebt: number;
     totalReserved: number;
+    cardReserveGap: number;
     totalGap: number;
+    monthlyCardPurchases: number;
+    monthlyCardPayments: number;
+    monthlyCardReservations: number;
+    monthlyLoanPayments: number;
+    scheduledLoanPayments: number;
+    monthlyInterestFees: number;
+    estimatedLoanInterest: number;
     monthlyPurchases: number;
     monthlyPayments: number;
     monthlyReservations: number;
-    monthlyInterestFees: number;
     otherLiabilitiesDebt: number;
   };
 }
@@ -233,6 +272,72 @@ function getStatus(debt: number, reserved: number): DebtStatus {
   return "under_reserved";
 }
 
+function isLoanLiability(account: Account) {
+  const liabilityType = account.attributes.liability_type?.toLocaleLowerCase("es-CO") ?? "";
+  return /loan|debt|mortgage|cr[eé]dito|prestamo|pr[eé]stamo/.test(liabilityType);
+}
+
+function getLoanConfig(account: Account) {
+  return LOAN_DEBTS.find((loan) => loan.accountId === account.id || namesEqual(account.attributes.name, loan.name));
+}
+
+function isPaymentTowardLiability(split: TransactionSplit, account: Account) {
+  if (split.type !== "transfer" && split.type !== "deposit") return false;
+  return split.destination_id === account.id || namesEqual(split.destination_name, account.attributes.name);
+}
+
+function getLoanStatus(paymentsThisPeriod: number, monthlyPayment?: number | null): LoanPaymentStatus {
+  if (!monthlyPayment || monthlyPayment <= 0) return paymentsThisPeriod > 0 ? "paid_this_month" : "unknown";
+  if (paymentsThisPeriod >= monthlyPayment) return "paid_this_month";
+  if (paymentsThisPeriod > 0) return "partial_payment";
+  return "due";
+}
+
+function buildLoanMetrics(account: Account, groups: TransactionGroup[]): LoanDebtMetrics {
+  const config = getLoanConfig(account);
+  const currency = getAccountCurrency(account);
+  const debt = absMoney(account.attributes.current_balance);
+  const payments: LoanPeriodPayment[] = [];
+
+  for (const { groupId, splitId, split } of flattenSplits(groups)) {
+    if (!isPaymentTowardLiability(split, account)) continue;
+    payments.push({
+      id: splitId || groupId,
+      groupId,
+      date: split.date,
+      description: split.description || "Loan payment",
+      amount: absMoney(split.amount),
+      currency: split.currency_code ?? currency,
+      sourceName: split.source_name,
+      destinationName: split.destination_name,
+    });
+  }
+
+  payments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const monthlyInterestRate = config?.monthlyInterestRate ?? null;
+  const monthlyPayment = config?.monthlyPayment ?? null;
+  const estimatedMonthlyInterest = monthlyInterestRate ? debt * monthlyInterestRate : 0;
+  const estimatedMonthlyPrincipal = monthlyPayment ? Math.max(monthlyPayment - estimatedMonthlyInterest, 0) : 0;
+
+  return {
+    id: account.id,
+    name: account.attributes.name,
+    currency,
+    debt,
+    liabilityType: account.attributes.liability_type,
+    purpose: config?.purpose ?? null,
+    monthlyPayment,
+    monthlyInterestRate,
+    estimatedMonthlyInterest,
+    estimatedMonthlyPrincipal,
+    estimatedMonthsRemaining: estimatedMonthlyPrincipal > 0 ? Math.ceil(debt / estimatedMonthlyPrincipal) : null,
+    paymentsThisPeriod: payments.reduce((sum, payment) => sum + payment.amount, 0),
+    latestPeriodPayment: payments[0] ?? null,
+    status: getLoanStatus(payments.reduce((sum, payment) => sum + payment.amount, 0), monthlyPayment),
+  };
+}
+
 function buildCardMetrics(
   card: CreditCardConfig,
   liabilities: Account[],
@@ -329,8 +434,16 @@ export async function getDebtDashboard(input?: { start?: string | null; end?: st
   const transactions = cards.flatMap((card) => card.transactions).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const cardIds = new Set(cards.map((card) => card.accountId));
   const cardNames = new Set(cards.map((card) => card.name.toLocaleLowerCase("es-CO")));
-  const otherLiabilities = liabilities
+  const nonCardLiabilities = liabilities
     .filter((account) => !cardIds.has(account.id) && !cardNames.has(account.attributes.name.toLocaleLowerCase("es-CO")))
+    .filter((account) => absMoney(account.attributes.current_balance) > 0);
+  const loans = nonCardLiabilities
+    .filter((account) => getLoanConfig(account) || isLoanLiability(account))
+    .map((account) => buildLoanMetrics(account, transactionGroups))
+    .sort((a, b) => b.debt - a.debt);
+  const loanIds = new Set(loans.map((loan) => loan.id));
+  const otherLiabilities = nonCardLiabilities
+    .filter((account) => !loanIds.has(account.id))
     .map((account) => ({
       id: account.id,
       name: account.attributes.name,
@@ -338,17 +451,22 @@ export async function getDebtDashboard(input?: { start?: string | null; end?: st
       debt: absMoney(account.attributes.current_balance),
       liabilityType: account.attributes.liability_type,
     }))
-    .filter((account) => account.debt > 0)
     .sort((a, b) => b.debt - a.debt);
 
   const missingAccounts = cards.flatMap((card) => [
     ...(card.found ? [] : [card.name]),
     ...(card.reserveFound ? [] : [card.reserveName]),
   ]);
-  const currency = cards.find((card) => card.currency)?.currency ?? otherLiabilities[0]?.currency ?? DEFAULT_CURRENCY;
+  const currency = cards.find((card) => card.currency)?.currency ?? loans[0]?.currency ?? otherLiabilities[0]?.currency ?? DEFAULT_CURRENCY;
   const cardDebt = cards.reduce((sum, card) => sum + card.debt, 0);
   const totalReserved = cards.reduce((sum, card) => sum + card.reserved, 0);
+  const cardReserveGap = Math.max(cardDebt - totalReserved, 0);
+  const loanDebt = loans.reduce((sum, item) => sum + item.debt, 0);
   const otherLiabilitiesDebt = otherLiabilities.reduce((sum, item) => sum + item.debt, 0);
+  const monthlyCardPurchases = cards.reduce((sum, card) => sum + card.monthlyPurchases, 0);
+  const monthlyCardPayments = cards.reduce((sum, card) => sum + card.monthlyPayments, 0);
+  const monthlyCardReservations = cards.reduce((sum, card) => sum + card.monthlyReservations, 0);
+  const monthlyLoanPayments = loans.reduce((sum, loan) => sum + loan.paymentsThisPeriod, 0);
 
   return {
     asOf: now.toISOString(),
@@ -356,17 +474,27 @@ export async function getDebtDashboard(input?: { start?: string | null; end?: st
     monthEnd: period.end,
     currency,
     cards,
+    loans,
     transactions,
     otherLiabilities,
     missingAccounts,
     totals: {
-      totalDebt: cardDebt + otherLiabilitiesDebt,
+      totalDebt: cardDebt + loanDebt + otherLiabilitiesDebt,
+      creditCardDebt: cardDebt,
+      loanDebt,
       totalReserved,
-      totalGap: Math.max(cardDebt - totalReserved, 0) + otherLiabilitiesDebt,
-      monthlyPurchases: cards.reduce((sum, card) => sum + card.monthlyPurchases, 0),
-      monthlyPayments: cards.reduce((sum, card) => sum + card.monthlyPayments, 0),
-      monthlyReservations: cards.reduce((sum, card) => sum + card.monthlyReservations, 0),
+      cardReserveGap,
+      totalGap: cardReserveGap,
+      monthlyCardPurchases,
+      monthlyCardPayments,
+      monthlyCardReservations,
+      monthlyLoanPayments,
+      scheduledLoanPayments: loans.reduce((sum, loan) => sum + (loan.monthlyPayment ?? 0), 0),
       monthlyInterestFees: cards.reduce((sum, card) => sum + card.monthlyInterestFees, 0),
+      estimatedLoanInterest: loans.reduce((sum, loan) => sum + loan.estimatedMonthlyInterest, 0),
+      monthlyPurchases: monthlyCardPurchases,
+      monthlyPayments: monthlyCardPayments,
+      monthlyReservations: monthlyCardReservations,
       otherLiabilitiesDebt,
     },
   };
