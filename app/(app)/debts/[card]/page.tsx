@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Money } from "@/components/common/money";
 import { Empty } from "@/components/common/empty";
 import { ErrorCard } from "@/components/common/error-card";
+import { MonthNav } from "@/components/transactions/month-nav";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Credit card transactions" };
@@ -33,6 +34,21 @@ function cardHref(cardKey: string, sp: SearchParams, overrides?: Partial<SearchP
 
 function clearFilterHref(cardKey: string, sp: SearchParams, key: keyof SearchParams) {
   return cardHref(cardKey, { ...sp, [key]: undefined });
+}
+
+function navDateParts(start: string) {
+  const [year, month] = start.split("-").map(Number);
+  return { year, month };
+}
+
+function periodLabel(start: string) {
+  const { year, month } = navDateParts(start);
+  return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date(year, month - 1, 1));
+}
+
+function DebtMonthNav({ cardKey, start }: { cardKey: string; start: string }) {
+  const { year, month } = navDateParts(start);
+  return <MonthNav year={year} month={month} isAll={false} baseUrl={`/debts/${cardKey}`} locale="en-US" labelAction="none" />;
 }
 
 function matchesFilter(tx: DebtRecentTransaction, sp: SearchParams) {
@@ -147,11 +163,13 @@ export default async function CreditCardTransactionsPage({ params, searchParams 
     if (!card) throw new Error("Card configuration was not returned by the dashboard helper.");
     const filtered = card.transactions.filter((tx) => matchesFilter(tx, sp));
     const totals = summarize(filtered);
-    const period = `${data.monthStart} → ${data.monthEnd}`;
+    const label = periodLabel(data.monthStart);
 
     return (
-      <div className="space-y-6">
-        <PageHeader title={`${card.label} transactions`} subtitle={`Credit card activity for ${period}. Inspect purchases, categories, budgets, payments, reservations, and fees.`} />
+      <div className="space-y-4">
+        <PageHeader title={`${card.label} transactions`} subtitle={`Credit card activity for ${label}. Inspect purchases, categories, budgets, payments, reservations, and fees.`} />
+
+        <DebtMonthNav cardKey={card.key} start={data.monthStart} />
 
         <div className="flex flex-wrap gap-2">
           <Link href={`/debts?start=${data.monthStart}&end=${data.monthEnd}`} className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium hover:bg-accent"><ArrowLeft className="h-3.5 w-3.5" />Back to Debts & Credit</Link>
@@ -159,15 +177,9 @@ export default async function CreditCardTransactionsPage({ params, searchParams 
         </div>
 
         <Card className="p-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Selected period</p>
-              <p className="text-sm font-medium">{period}</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <FilterPill href={cardHref(card.key, sp, { type: undefined })} label="All types" active={!sp.type} />
-              {Object.entries(TX_KIND_LABELS).map(([key, label]) => <FilterPill key={key} href={cardHref(card.key, sp, { type: key })} label={label} active={sp.type === key} />)}
-            </div>
+          <div className="flex flex-wrap gap-2">
+            <FilterPill href={cardHref(card.key, sp, { type: undefined })} label="All types" active={!sp.type} />
+            {Object.entries(TX_KIND_LABELS).map(([key, label]) => <FilterPill key={key} href={cardHref(card.key, sp, { type: key })} label={label} active={sp.type === key} />)}
           </div>
           {(sp.type || sp.category || sp.budget) ? (
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">

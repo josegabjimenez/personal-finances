@@ -30,11 +30,21 @@ export function MonthNav({
   month,
   isAll,
   baseUrl = "/transactions",
+  locale = "es-CO",
+  allLabel = "All transactions",
+  byMonthLabel = "By month",
+  allTitle = "Show all transactions",
+  labelAction = "all",
 }: {
   year: number;
   month: number; // 1-indexed
   isAll: boolean;
   baseUrl?: string;
+  locale?: string;
+  allLabel?: string;
+  byMonthLabel?: string;
+  allTitle?: string;
+  labelAction?: "all" | "none";
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -43,6 +53,7 @@ export function MonthNav({
     const sp = new URLSearchParams(searchParams.toString());
     sp.set("start", monthStart(y, m));
     sp.set("end", monthEnd(y, m));
+    sp.delete("month");
     sp.delete("view");
     sp.delete("page");
     router.push(`${baseUrl}?${sp.toString()}`);
@@ -69,7 +80,7 @@ export function MonthNav({
     next.year > now.getFullYear() ||
     (next.year === now.getFullYear() && next.month > now.getMonth() + 1);
 
-  const label = new Intl.DateTimeFormat("es-CO", {
+  const label = new Intl.DateTimeFormat(locale, {
     month: "long",
     year: "numeric",
   }).format(new Date(year, month - 1, 1));
@@ -77,9 +88,9 @@ export function MonthNav({
   if (isAll) {
     return (
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">All transactions</span>
+        <span className="text-sm font-medium">{allLabel}</span>
         <Button variant="outline" size="sm" onClick={goCurrentMonth}>
-          By month
+          {byMonthLabel}
         </Button>
       </div>
     );
@@ -97,9 +108,10 @@ export function MonthNav({
         <ChevronLeft className="h-4 w-4" />
       </Button>
       <button
-        className="flex-1 text-center text-sm font-medium capitalize hover:text-foreground/70 transition-colors"
-        onClick={goAll}
-        title="Show all transactions"
+        className="flex-1 text-center text-sm font-medium capitalize transition-colors disabled:cursor-default disabled:opacity-100 enabled:hover:text-foreground/70"
+        onClick={labelAction === "all" ? goAll : undefined}
+        title={labelAction === "all" ? allTitle : undefined}
+        disabled={labelAction === "none"}
       >
         {label}
       </button>

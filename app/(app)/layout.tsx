@@ -10,7 +10,7 @@ export default function AppLayout({
   return (
     <div className="min-h-screen">
       <SideRail />
-      <main className="md:pl-60 pb-28 md:pb-10">
+      <main className="pb-20 md:pb-10 md:pl-60">
         <div className="mx-auto w-full max-w-3xl px-4 pt-safe md:pt-10">
           {children}
         </div>
