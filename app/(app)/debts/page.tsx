@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AlertCircle, ArrowDownToLine, ArrowUpRight, CheckCircle2, ChevronRight, CreditCard, Landmark, PiggyBank, ShieldCheck, WalletCards } from "lucide-react";
-import { getDebtDashboard, type CreditCardDebtMetrics, type DebtDashboardResponse, type LoanDebtMetrics, type OtherLiabilityDebt } from "@/lib/firefly/debts";
+import { CREDIT_CARDS, getDebtDashboard, type CreditCardDebtMetrics, type DebtDashboardResponse, type LoanDebtMetrics, type OtherLiabilityDebt } from "@/lib/firefly/debts";
 import { formatDateShort, formatMoney, formatPercent } from "@/lib/format";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
@@ -62,6 +62,10 @@ function periodLabel(start: string) {
 function DebtMonthNav({ start }: { start: string }) {
   const { year, month } = navDateParts(start);
   return <MonthNav year={year} month={month} isAll={false} baseUrl="/debts" locale="en-US" labelAction="none" />;
+}
+
+function configuredCardLabels() {
+  return CREDIT_CARDS.map((card) => card.label).join("/");
 }
 
 function HeroSummary({ data }: { data: DebtDashboardResponse }) {
@@ -222,7 +226,7 @@ function LoansAndLiabilities({ loans, otherLiabilities, currency, loanDebt, othe
       </div>
 
       {loans.length === 0 && otherLiabilities.length === 0 ? (
-        <Empty title="No loans or extra liabilities" description="No active non-card liabilities with a balance were found besides TC1/TC2." />
+        <Empty title="No loans or extra liabilities" description={`No active non-card liabilities with a balance were found besides ${configuredCardLabels()}.`} />
       ) : null}
 
       {loans.length > 0 ? <div className="grid gap-3 md:grid-cols-2">{loans.map((loan) => <LoanCard key={loan.id} loan={loan} />)}</div> : null}
