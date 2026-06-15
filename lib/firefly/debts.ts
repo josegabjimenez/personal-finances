@@ -5,8 +5,9 @@ import { fireflyFetch } from "./client";
 import { accountsListSchema, transactionsListSchema, type Account, type TransactionGroup, type TransactionSplit } from "./types";
 
 export const CREDIT_CARDS = [
-  { key: "tc1", label: "TC1", name: "TC1 - Deuda", accountId: "88", reserveName: "Savings for TC1" },
-  { key: "tc2", label: "TC2", name: "TC2 - Deuda", accountId: "89", reserveName: "Savings for TC 2" },
+  { key: "tc1", label: "TC1", name: "TC1 - Deuda", accountId: "88", reserveName: "Savings for TC1", reserveAccountId: "23" },
+  { key: "tc2", label: "TC2", name: "TC2 - Deuda", accountId: "89", reserveName: "Savings for TC 2", reserveAccountId: "24" },
+  { key: "tc3", label: "TC3", name: "TC3 - Deuda", accountId: "96", reserveName: "Savings for TC3", reserveAccountId: "97" },
 ] as const;
 
 export const LOAN_DEBTS = [
@@ -345,7 +346,7 @@ function buildCardMetrics(
   groups: TransactionGroup[]
 ): CreditCardDebtMetrics {
   const liability = liabilities.find((a) => a.id === card.accountId) ?? liabilities.find((a) => namesEqual(a.attributes.name, card.name));
-  const reserve = assets.find((a) => namesEqual(a.attributes.name, card.reserveName));
+  const reserve = assets.find((a) => a.id === card.reserveAccountId) ?? assets.find((a) => namesEqual(a.attributes.name, card.reserveName));
   const currency = getAccountCurrency(liability ?? reserve);
   const debt = absMoney(liability?.attributes.current_balance);
   const reserved = absMoney(reserve?.attributes.current_balance);
