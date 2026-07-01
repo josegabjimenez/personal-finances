@@ -18,6 +18,13 @@ interface SearchParams {
   end?: string;
 }
 
+function budgetListHref(sp: SearchParams) {
+  if (!sp.start || !sp.end) return "/budgets";
+
+  const params = new URLSearchParams({ start: sp.start, end: sp.end });
+  return `/budgets?${params.toString()}`;
+}
+
 export default async function BudgetDetailPage({
   params,
   searchParams,
@@ -43,7 +50,7 @@ export default async function BudgetDetailPage({
 
   const backLink = (
     <Link
-      href="/budgets"
+      href={budgetListHref(sp)}
       data-haptic="medium"
       className="inline-flex items-center gap-1 rounded-full px-2 py-1 -ml-2 text-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground active:bg-accent active:text-foreground"
     >
