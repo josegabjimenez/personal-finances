@@ -143,11 +143,27 @@ export async function listAccountTransactions(
 }
 
 export async function listBudgets(): Promise<Budget[]> {
-  const raw = await fireflyFetch("/budgets", {
+  const limit = 100;
+  const firstRaw = await fireflyFetch("/budgets", {
+    searchParams: { page: 1, limit },
     revalidate: 120,
     tags: ["budgets"],
   });
-  return budgetsListSchema.parse(raw).data;
+  const first = budgetsListSchema.parse(firstRaw);
+  const totalPages = first.meta?.pagination?.total_pages ?? 1;
+  if (totalPages <= 1) return first.data;
+
+  const rest = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      fireflyFetch("/budgets", {
+        searchParams: { page: index + 2, limit },
+        revalidate: 120,
+        tags: ["budgets"],
+      }).then((raw) => budgetsListSchema.parse(raw).data)
+    )
+  );
+
+  return [first.data, ...rest].flat();
 }
 
 export async function getBudget(id: string): Promise<Budget> {
@@ -177,12 +193,28 @@ export async function listBudgetTransactions(
 }
 
 export async function listBudgetLimits(start: Date, end: Date): Promise<BudgetLimit[]> {
-  const raw = await fireflyFetch("/budget-limits", {
-    searchParams: { start: toYMD(start), end: toYMD(end) },
+  const limit = 100;
+  const searchParams = { start: toYMD(start), end: toYMD(end), limit };
+  const firstRaw = await fireflyFetch("/budget-limits", {
+    searchParams: { ...searchParams, page: 1 },
     revalidate: 120,
     tags: ["budgets"],
   });
-  return budgetLimitsListSchema.parse(raw).data;
+  const first = budgetLimitsListSchema.parse(firstRaw);
+  const totalPages = first.meta?.pagination?.total_pages ?? 1;
+  if (totalPages <= 1) return first.data;
+
+  const rest = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      fireflyFetch("/budget-limits", {
+        searchParams: { ...searchParams, page: index + 2 },
+        revalidate: 120,
+        tags: ["budgets"],
+      }).then((raw) => budgetLimitsListSchema.parse(raw).data)
+    )
+  );
+
+  return [first.data, ...rest].flat();
 }
 
 export async function listCategories(): Promise<Category[]> {

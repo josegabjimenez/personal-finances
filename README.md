@@ -6,7 +6,7 @@ A fast, mobile-first PWA that reads your self-hosted [Firefly III](https://www.f
 - **Transactions** — list with search, filter by type and date range, pagination
 - **Accounts** — balances grouped by assets and liabilities
 - **Debts & Credit** — credit-card debt control for TC1/TC2/TC3, selectable periods, savings coverage, purchases/payments/reservations/fees, category/budget breakdowns, transaction detail views, and other liabilities
-- **Budgets** — spent vs limit for the current period, with progress bars
+- **Budgets** — selectable monthly budget limits with a month picker, overview summary, and spent vs assigned progress bars
 - **Categories** — donut chart + breakdown of where your money went
 - **Piggy banks** — progress toward savings goals
 - **Password-gated** — single-user login, token stays server-side only
