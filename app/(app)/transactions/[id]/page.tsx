@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Repeat2 } from "lucide-react";
 import { fireflyFetch } from "@/lib/firefly/client";
+import { getRecurringIndex } from "@/lib/firefly/recurring";
 import { transactionSchema } from "@/lib/firefly/types";
+import { getRecurringTransactionMeta } from "@/lib/firefly/recurring-flags";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Money } from "@/components/common/money";
 import { formatDateTime } from "@/lib/format";
@@ -19,10 +21,14 @@ export default async function TransactionDetailPage({
 }) {
   const { id } = await params;
   try {
-    const raw = await fireflyFetch(`/transactions/${id}`, { revalidate: 60 });
+    const [raw, recurringIndex] = await Promise.all([
+      fireflyFetch(`/transactions/${id}`, { revalidate: 60 }),
+      getRecurringIndex().catch(() => ({ bills: [], templates: [] })),
+    ]);
     const { data } = envelope.parse(raw);
     const split = data.attributes.transactions[0];
     if (!split) throw new Error("Transaction has no splits");
+    const recurring = getRecurringTransactionMeta(split, recurringIndex);
 
     const rows: [string, React.ReactNode][] = [
       ["Type", capitalize(split.type)],
@@ -39,6 +45,23 @@ export default async function TransactionDetailPage({
       ["To", split.destination_name ?? "—"],
       ["Category", split.category_name ?? "—"],
       ["Budget", split.budget_name ?? "—"],
+      [
+        "Recurring",
+        recurring.isRecurring ? (
+          <span key="recurring" className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+            <Repeat2 className="h-3 w-3" />
+            {recurring.label ?? "Recurring transaction"}
+          </span>
+        ) : (
+          "No"
+        ),
+      ],
+      ...(recurring.isRecurring && recurring.detail
+        ? [["Recurring source", recurring.detail] as [string, React.ReactNode]]
+        : []),
+      ...(recurring.isRecurring && (recurring.count || recurring.total)
+        ? [["Recurring run", `${recurring.count ?? "—"}${recurring.total ? ` of ${recurring.total}` : ""}`] as [string, React.ReactNode]]
+        : []),
       ...(split.tags && split.tags.length > 0
         ? [["Tags", split.tags.join(", ")] as [string, React.ReactNode]]
         : []),

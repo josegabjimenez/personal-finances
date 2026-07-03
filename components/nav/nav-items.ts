@@ -5,6 +5,7 @@ import {
   Wallet,
   Target,
   PiggyBank,
+  Repeat2,
   Shapes,
   type LucideIcon,
 } from "lucide-react";
@@ -27,6 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   },
   { href: "/accounts", label: "Accounts", icon: Wallet, primary: true },
   { href: "/debts", label: "Credit", icon: CreditCard, primary: true },
+  { href: "/recurring", label: "Recurring", icon: Repeat2 },
   { href: "/budgets", label: "Budgets", icon: Target },
   { href: "/categories", label: "Categories", icon: Shapes },
   { href: "/piggy-banks", label: "Piggy banks", icon: PiggyBank },

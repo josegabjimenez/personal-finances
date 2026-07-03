@@ -5,6 +5,8 @@ import {
   accountSchema,
   accountsListSchema,
   aboutUserSchema,
+  billSchema,
+  billsListSchema,
   budgetLimitsListSchema,
   budgetSchema,
   budgetsListSchema,
@@ -12,15 +14,19 @@ import {
   categorySchema,
   insightCategorySchema,
   piggyBanksListSchema,
+  recurrenceSchema,
+  recurrencesListSchema,
   summaryBasicSchema,
   tagsListSchema,
   transactionsListSchema,
   type Account,
+  type Bill,
   type Budget,
   type BudgetLimit,
   type Category,
   type InsightCategoryRow,
   type PiggyBank,
+  type Recurrence,
   type SummaryBasic,
   type Tag,
   type TransactionGroup,
@@ -105,6 +111,70 @@ export async function listTransactions(params: {
     groups: parsed.data,
     totalPages: parsed.meta?.pagination?.total_pages ?? 1,
   };
+}
+
+export async function listBills(): Promise<Bill[]> {
+  const limit = 100;
+  const firstRaw = await fireflyFetch("/bills", {
+    searchParams: { page: 1, limit },
+    revalidate: 120,
+    tags: ["bills"],
+  });
+  const first = billsListSchema.parse(firstRaw);
+  const totalPages = first.meta?.pagination?.total_pages ?? 1;
+  if (totalPages <= 1) return first.data;
+
+  const rest = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      fireflyFetch("/bills", {
+        searchParams: { page: index + 2, limit },
+        revalidate: 120,
+        tags: ["bills"],
+      }).then((raw) => billsListSchema.parse(raw).data)
+    )
+  );
+
+  return [first.data, ...rest].flat();
+}
+
+export async function getBill(id: string): Promise<Bill> {
+  const raw = await fireflyFetch(`/bills/${id}`, {
+    revalidate: 120,
+    tags: ["bills"],
+  });
+  return z.object({ data: billSchema }).parse(raw).data;
+}
+
+export async function listRecurrences(): Promise<Recurrence[]> {
+  const limit = 100;
+  const firstRaw = await fireflyFetch("/recurrences", {
+    searchParams: { page: 1, limit },
+    revalidate: 120,
+    tags: ["recurrences"],
+  });
+  const first = recurrencesListSchema.parse(firstRaw);
+  const totalPages = first.meta?.pagination?.total_pages ?? 1;
+  if (totalPages <= 1) return first.data;
+
+  const rest = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      fireflyFetch("/recurrences", {
+        searchParams: { page: index + 2, limit },
+        revalidate: 120,
+        tags: ["recurrences"],
+      }).then((raw) => recurrencesListSchema.parse(raw).data)
+    )
+  );
+
+  return [first.data, ...rest].flat();
+}
+
+export async function getRecurrence(id: string): Promise<Recurrence> {
+  const raw = await fireflyFetch(`/recurrences/${id}`, {
+    revalidate: 120,
+    tags: ["recurrences"],
+  });
+  return z.object({ data: recurrenceSchema }).parse(raw).data;
 }
 
 export async function listAccounts(type?: "asset" | "liability" | "expense" | "revenue"): Promise<Account[]> {
