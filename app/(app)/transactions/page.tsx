@@ -1,4 +1,6 @@
 import { listTransactions, listAccounts, listCategories, listTags } from "@/lib/firefly/queries";
+import { getRecurringIndex } from "@/lib/firefly/recurring";
+import { getRecurringTransactionMeta } from "@/lib/firefly/recurring-flags";
 import { toYMD, startOfMonth, endOfMonth } from "@/lib/format";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
@@ -49,7 +51,7 @@ export default async function TransactionsPage({
   const limit = isAllView ? 50 : 500;
 
   try {
-    const [{ groups, totalPages }, accounts, categories, tags] = await Promise.all([
+    const [{ groups, totalPages }, accounts, categories, tags, recurringIndex] = await Promise.all([
       listTransactions({
         page: 1,
         limit,
@@ -60,6 +62,7 @@ export default async function TransactionsPage({
       listAccounts("asset").catch(() => []),
       listCategories().catch(() => []),
       listTags().catch(() => []),
+      getRecurringIndex().catch(() => ({ bills: [], templates: [] })),
     ]);
 
     // Build Firefly proxy URL for infinite scroll (All view)
@@ -77,9 +80,11 @@ export default async function TransactionsPage({
       if (q) {
         filtered = filtered.filter((g) => {
           const s = g.attributes.transactions[0];
+          const recurring = s ? getRecurringTransactionMeta(s, recurringIndex) : null;
           return [
             s?.description, s?.source_name, s?.destination_name,
-            s?.category_name, s?.budget_name, ...(s?.tags ?? []),
+            s?.category_name, s?.budget_name, s?.bill_name, s?.subscription_name,
+            s?.recurrence_id, recurring?.label, recurring?.detail, ...(s?.tags ?? []),
             g.attributes.group_title,
           ]
             .filter(Boolean).join(" ").toLowerCase().includes(q);
@@ -140,6 +145,7 @@ export default async function TransactionsPage({
               accountFilter={sp.account}
               categoryFilter={sp.category}
               tagFilter={sp.tag}
+              recurringIndex={recurringIndex}
             />
           )
         ) : (
@@ -156,7 +162,7 @@ export default async function TransactionsPage({
               </div>
               <Card className="divide-y overflow-hidden p-0">
                 {filtered.map((g) => (
-                  <TransactionRow key={g.id} group={g} />
+                  <TransactionRow key={g.id} group={g} recurringIndex={recurringIndex} />
                 ))}
               </Card>
             </>

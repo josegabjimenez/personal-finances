@@ -68,14 +68,24 @@ export const transactionSplitSchema = z
     currency_symbol: z.string().optional().nullable(),
     description: z.string().optional().nullable(),
     date: z.string(),
+    transaction_journal_id: z.string().optional().nullable(),
     source_id: z.string().optional().nullable(),
     source_name: z.string().optional().nullable(),
+    source_type: z.string().optional().nullable(),
     destination_id: z.string().optional().nullable(),
     destination_name: z.string().optional().nullable(),
+    destination_type: z.string().optional().nullable(),
     category_id: z.string().optional().nullable(),
     category_name: z.string().optional().nullable(),
     budget_id: z.string().optional().nullable(),
     budget_name: z.string().optional().nullable(),
+    bill_id: z.string().optional().nullable(),
+    bill_name: z.string().optional().nullable(),
+    recurrence_id: z.string().optional().nullable(),
+    recurrence_count: z.number().optional().nullable(),
+    recurrence_total: z.number().optional().nullable(),
+    subscription_id: z.string().optional().nullable(),
+    subscription_name: z.string().optional().nullable(),
     notes: z.string().optional().nullable(),
     tags: z.array(z.string()).optional().nullable(),
   })
@@ -98,6 +108,102 @@ export const transactionsListSchema = z.object({
 });
 export type TransactionGroup = z.infer<typeof transactionSchema>;
 export type TransactionSplit = z.infer<typeof transactionSplitSchema>;
+
+// --- Bills and recurrences -----------------------------------------------
+
+export const billSchema = z.object({
+  type: z.literal("bills"),
+  id: z.string(),
+  attributes: z
+    .object({
+      name: z.string(),
+      active: z.boolean().optional(),
+      amount_min: z.string().optional().nullable(),
+      amount_max: z.string().optional().nullable(),
+      amount_avg: z.string().optional().nullable(),
+      currency_code: z.string().optional().nullable(),
+      currency_symbol: z.string().optional().nullable(),
+      date: z.string().optional().nullable(),
+      end_date: z.string().optional().nullable(),
+      extension_date: z.string().optional().nullable(),
+      repeat_freq: z.string().optional().nullable(),
+      skip: z.number().optional().nullable(),
+      notes: z.string().optional().nullable(),
+      pay_dates: z.array(z.unknown()).optional().nullable(),
+      paid_dates: z.array(z.unknown()).optional().nullable(),
+      next_expected_match: z.string().optional().nullable(),
+      next_expected_match_diff: z.string().optional().nullable(),
+    })
+    .passthrough(),
+});
+
+export const billsListSchema = z.object({
+  data: z.array(billSchema),
+  meta: paginationMetaSchema.optional(),
+});
+export type Bill = z.infer<typeof billSchema>;
+
+export const recurrenceRepetitionSchema = z
+  .object({
+    type: z.string().optional().nullable(),
+    moment: z.string().optional().nullable(),
+    skip: z.number().optional().nullable(),
+    weekend: z.number().optional().nullable(),
+    description: z.string().optional().nullable(),
+    occurrences: z.array(z.string()).optional().nullable(),
+  })
+  .passthrough();
+
+export const recurrenceTransactionSchema = z
+  .object({
+    id: z.string().optional().nullable(),
+    amount: z.string(),
+    currency_code: z.string().optional().nullable(),
+    currency_symbol: z.string().optional().nullable(),
+    description: z.string().optional().nullable(),
+    source_id: z.string().optional().nullable(),
+    source_name: z.string().optional().nullable(),
+    source_type: z.string().optional().nullable(),
+    destination_id: z.string().optional().nullable(),
+    destination_name: z.string().optional().nullable(),
+    destination_type: z.string().optional().nullable(),
+    category_id: z.string().optional().nullable(),
+    category_name: z.string().optional().nullable(),
+    budget_id: z.string().optional().nullable(),
+    budget_name: z.string().optional().nullable(),
+    subscription_id: z.string().optional().nullable(),
+    subscription_name: z.string().optional().nullable(),
+    tags: z.array(z.string()).optional().nullable(),
+  })
+  .passthrough();
+
+export const recurrenceSchema = z.object({
+  type: z.literal("recurrences"),
+  id: z.string(),
+  attributes: z
+    .object({
+      title: z.string(),
+      type: z.string(),
+      active: z.boolean().optional(),
+      apply_rules: z.boolean().optional(),
+      description: z.string().optional().nullable(),
+      first_date: z.string().optional().nullable(),
+      latest_date: z.string().optional().nullable(),
+      repeat_until: z.string().optional().nullable(),
+      nr_of_repetitions: z.number().optional().nullable(),
+      notes: z.string().optional().nullable(),
+      repetitions: z.array(recurrenceRepetitionSchema).optional().nullable(),
+      transactions: z.array(recurrenceTransactionSchema).optional().nullable(),
+    })
+    .passthrough(),
+});
+
+export const recurrencesListSchema = z.object({
+  data: z.array(recurrenceSchema),
+  meta: paginationMetaSchema.optional(),
+});
+export type Recurrence = z.infer<typeof recurrenceSchema>;
+export type RecurrenceTransaction = z.infer<typeof recurrenceTransactionSchema>;
 
 // --- Accounts ------------------------------------------------------------
 

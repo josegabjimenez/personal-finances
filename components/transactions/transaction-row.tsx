@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight } from "lucide-react";
+import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Repeat2 } from "lucide-react";
 import type { TransactionGroup } from "@/lib/firefly/types";
+import {
+  getRecurringTransactionMeta,
+  type RecurringIndex,
+} from "@/lib/firefly/recurring-flags";
 import { Money } from "@/components/common/money";
 import { formatDateShort } from "@/lib/format";
 
@@ -27,7 +31,13 @@ function signedAmount(type: string, amount: string) {
   return n; // transfer
 }
 
-export function TransactionRow({ group }: { group: TransactionGroup }) {
+export function TransactionRow({
+  group,
+  recurringIndex,
+}: {
+  group: TransactionGroup;
+  recurringIndex?: RecurringIndex | null;
+}) {
   const split = group.attributes.transactions[0];
   if (!split) return null;
   const amount = signedAmount(split.type, split.amount);
@@ -46,6 +56,8 @@ export function TransactionRow({ group }: { group: TransactionGroup }) {
       : split.type === "deposit"
         ? split.source_name
         : `${split.source_name} → ${split.destination_name}`;
+  const recurring = getRecurringTransactionMeta(split, recurringIndex);
+  const recurringLabel = recurring.kind === "reserve" ? "Reserve" : "Recurring";
 
   return (
     <Link
@@ -56,7 +68,18 @@ export function TransactionRow({ group }: { group: TransactionGroup }) {
         {iconFor(split.type)}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{title}</p>
+        <div className="flex min-w-0 items-center gap-2">
+          <p className="truncate text-sm font-medium">{title}</p>
+          {recurring.isRecurring ? (
+            <span
+              title={recurring.label ?? "Recurring transaction"}
+              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary"
+            >
+              <Repeat2 className="h-3 w-3" />
+              {recurringLabel}
+            </span>
+          ) : null}
+        </div>
         <p className="truncate text-xs text-muted-foreground">
           {counter ?? "—"}
           {split.category_name ? ` · ${split.category_name}` : ""}

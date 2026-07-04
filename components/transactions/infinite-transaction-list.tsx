@@ -5,6 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Money } from "@/components/common/money";
 import { TransactionRow } from "./transaction-row";
 import type { TransactionGroup } from "@/lib/firefly/types";
+import {
+  getRecurringTransactionMeta,
+  type RecurringIndex,
+} from "@/lib/firefly/recurring-flags";
 
 interface Props {
   initialGroups: TransactionGroup[];
@@ -14,24 +18,37 @@ interface Props {
   accountFilter?: string;
   categoryFilter?: string;
   tagFilter?: string;
+  recurringIndex?: RecurringIndex | null;
   defaultCurrency?: string;
 }
 
 function applyFilters(
   groups: TransactionGroup[],
-  opts: { q?: string; account?: string; category?: string; tag?: string }
+  opts: {
+    q?: string;
+    account?: string;
+    category?: string;
+    tag?: string;
+    recurringIndex?: RecurringIndex | null;
+  }
 ): TransactionGroup[] {
   let out = groups;
   if (opts.q) {
     const q = opts.q.trim().toLowerCase();
     out = out.filter((g) => {
       const s = g.attributes.transactions[0];
+      const recurring = s ? getRecurringTransactionMeta(s, opts.recurringIndex) : null;
       return [
         s?.description,
         s?.source_name,
         s?.destination_name,
         s?.category_name,
         s?.budget_name,
+        s?.bill_name,
+        s?.subscription_name,
+        s?.recurrence_id,
+        recurring?.label,
+        recurring?.detail,
         ...(s?.tags ?? []),
         g.attributes.group_title,
       ]
@@ -76,6 +93,7 @@ export function InfiniteTransactionList({
   accountFilter,
   categoryFilter,
   tagFilter,
+  recurringIndex,
   defaultCurrency = "COP",
 }: Props) {
   const [allGroups, setAllGroups] = useState<TransactionGroup[]>(initialGroups);
@@ -151,6 +169,7 @@ export function InfiniteTransactionList({
     account: accountFilter,
     category: categoryFilter,
     tag: tagFilter,
+    recurringIndex,
   });
 
   const currency = displayed[0]?.attributes.transactions[0]?.currency_code ?? defaultCurrency;
@@ -170,7 +189,7 @@ export function InfiniteTransactionList({
       {displayed.length > 0 && (
         <Card className="divide-y overflow-hidden p-0">
           {displayed.map((g) => (
-            <TransactionRow key={g.id} group={g} />
+            <TransactionRow key={g.id} group={g} recurringIndex={recurringIndex} />
           ))}
         </Card>
       )}
