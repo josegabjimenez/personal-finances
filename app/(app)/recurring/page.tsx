@@ -1,13 +1,15 @@
 import {
+  AlertTriangle,
   ArrowRightLeft,
   CalendarClock,
-  CheckCircle2,
+  ChevronDown,
   ReceiptText,
   Repeat2,
-  WalletCards,
 } from "lucide-react";
-import { getRecurringOverview, type ScheduledRecurringTransaction } from "@/lib/firefly/recurring";
-import type { Bill } from "@/lib/firefly/types";
+import {
+  getRecurringOverview,
+  type RecurringObligation,
+} from "@/lib/firefly/recurring";
 import { formatDateLong, formatDateShort, formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
@@ -31,11 +33,6 @@ async function getRecurringPageData(): Promise<RecurringPageData> {
   }
 }
 
-function parseMoney(value: string | null | undefined) {
-  const parsed = parseFloat(value ?? "0");
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
 function dateLabel(value: string | null | undefined, style: "short" | "long" = "long") {
   if (!value) return "—";
   return style === "short" ? formatDateShort(value) : formatDateLong(value);
@@ -44,11 +41,6 @@ function dateLabel(value: string | null | undefined, style: "short" | "long" = "
 function timestamp(value: string | null | undefined) {
   const parsed = value ? Date.parse(value) : NaN;
   return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER;
-}
-
-function compactFrequency(value: string | null | undefined) {
-  if (!value) return "—";
-  return value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 }
 
 function shortCadence(value: string | null | undefined) {
@@ -61,44 +53,38 @@ function shortCadence(value: string | null | undefined) {
     .trim();
 }
 
-function StatusBadge({ active }: { active: boolean }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium",
-        active
-          ? "border-success/20 bg-success/10 text-success"
-          : "border-border bg-muted text-muted-foreground"
-      )}
-    >
-      <CheckCircle2 className="h-3 w-3" />
-      {active ? "Active" : "Paused"}
-    </span>
-  );
-}
-
-function KindBadge({ kind }: { kind: "expense" | "reserve" | "bill" }) {
+function ObligationStatus({ obligation }: { obligation: RecurringObligation }) {
   const config = {
-    expense: {
-      label: "Expense",
-      icon: WalletCards,
-      className: "border-danger/20 bg-danger/10 text-danger",
+    automated: {
+      label: "Automated",
+      icon: Repeat2,
+      className: "text-muted-foreground",
     },
-    reserve: {
-      label: "Reserve",
-      icon: ArrowRightLeft,
-      className: "border-transfer/20 bg-transfer/10 text-transfer",
-    },
-    bill: {
-      label: "Bill",
+    tracked: {
+      label: "Tracked only",
       icon: ReceiptText,
-      className: "border-primary/20 bg-primary/10 text-primary",
+      className: "text-warning",
     },
-  }[kind];
+    untracked: {
+      label: "No bill",
+      icon: AlertTriangle,
+      className: "text-warning",
+    },
+    paused: {
+      label: "Paused",
+      icon: AlertTriangle,
+      className: "text-muted-foreground",
+    },
+    reserve_only: {
+      label: "Unlinked reserve",
+      icon: ArrowRightLeft,
+      className: "text-warning",
+    },
+  }[obligation.status];
   const Icon = config.icon;
 
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium", config.className)}>
+    <span className={cn("inline-flex items-center gap-1 text-[11px] font-medium", config.className)}>
       <Icon className="h-3 w-3" />
       {config.label}
     </span>
@@ -117,11 +103,9 @@ function HeroFact({ label, value }: { label: string; value: React.ReactNode }) {
 function HeroSummary({
   data,
   nextExpense,
-  nextReserve,
 }: {
   data: Awaited<ReturnType<typeof getRecurringOverview>>;
-  nextExpense?: ScheduledRecurringTransaction;
-  nextReserve?: ScheduledRecurringTransaction;
+  nextExpense?: RecurringObligation;
 }) {
   return (
     <Card className="overflow-hidden bg-card/80 p-4 shadow-sm shadow-black/5">
@@ -132,7 +116,7 @@ function HeroSummary({
           </p>
           <Money amount={data.totals.withdrawalAmount} currency={data.totals.currency} expense className="text-3xl tracking-tight" />
           <p className="text-xs text-muted-foreground">
-            {data.totals.activeScheduledWithdrawals} expenses · reserve transfers excluded from spending
+            {data.totals.activeObligations} obligations · card reserves excluded from spending
           </p>
         </div>
         <div className="rounded-full bg-danger/10 p-2 text-danger">
@@ -143,19 +127,23 @@ function HeroSummary({
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
         <HeroFact
           label="Next expense"
-          value={nextExpense ? `${nextExpense.description} · ${dateLabel(nextExpense.nextDate, "short")}` : "Nothing scheduled"}
+          value={nextExpense ? `${nextExpense.name} · ${dateLabel(nextExpense.nextDate, "short")}` : "Nothing scheduled"}
         />
         <HeroFact
-          label="Reserve transfers"
+          label="Card reserves"
           value={
             <>
-              <Money amount={data.totals.transferAmount} currency={data.totals.currency} /> · {nextReserve ? dateLabel(nextReserve.nextDate, "short") : "none"}
+              <Money amount={data.totals.transferAmount} currency={data.totals.currency} /> · not spending
             </>
           }
         />
         <HeroFact
-          label="Tracked bills"
-          value={`${data.totals.activeBills} active · ${data.totals.activeRecurrences} automations`}
+          label="Firefly setup"
+          value={
+            data.totals.needsAttention > 0
+              ? `${data.totals.needsAttention} need attention`
+              : `${data.totals.activeBills} bills · all linked`
+          }
         />
       </div>
     </Card>
@@ -182,85 +170,99 @@ function SectionHeader({
   );
 }
 
-function ScheduledRow({ item }: { item: ScheduledRecurringTransaction }) {
-  const isReserve = item.recurrenceType === "transfer";
-  const flow = [item.source, item.destination].filter(Boolean).join(" → ");
-  const details = [
-    shortCadence(item.frequency),
-    item.nextDate ? `Next ${dateLabel(item.nextDate, "short")}` : null,
-    item.budget ?? item.category,
-  ].filter(Boolean).join(" · ");
-
+function ObligationAmount({ obligation }: { obligation: RecurringObligation }) {
+  if (obligation.status === "reserve_only" && obligation.reserve) {
+    return (
+      <Money
+        amount={obligation.reserve.amount}
+        currency={obligation.reserve.currency}
+        className="text-transfer"
+      />
+    );
+  }
+  if (obligation.amountMin === obligation.amountMax) {
+    return <Money amount={obligation.amountMin} currency={obligation.currency} expense />;
+  }
   return (
-    <div className="px-4 py-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <KindBadge kind={isReserve ? "reserve" : "expense"} />
-            <StatusBadge active={item.active} />
-            {item.billName ? <KindBadge kind="bill" /> : null}
-          </div>
-          <div className="min-w-0">
-            <h3 className="truncate text-sm font-semibold text-foreground">{item.description}</h3>
-            <p className="truncate text-xs text-muted-foreground">{details || item.title}</p>
-          </div>
-          {flow ? <p className="truncate text-[11px] text-muted-foreground">{flow}</p> : null}
-        </div>
-        <Money
-          amount={item.amount}
-          currency={item.currency}
-          expense={!isReserve}
-          className={cn("shrink-0 text-sm", isReserve && "text-transfer")}
-        />
-      </div>
-    </div>
-  );
-}
-
-function BillAmount({ bill }: { bill: Bill }) {
-  const min = parseMoney(bill.attributes.amount_min);
-  const max = parseMoney(bill.attributes.amount_max);
-  const currency = bill.attributes.currency_code ?? "COP";
-
-  if (min === max) return <Money amount={min} currency={currency} />;
-  return (
-    <span className="tabular-nums font-medium">
-      {formatMoney(min, currency)}–{formatMoney(max, currency)}
+    <span className="tabular-nums font-medium text-danger">
+      {formatMoney(obligation.amountMin, obligation.currency)}–
+      {formatMoney(obligation.amountMax, obligation.currency)}
     </span>
   );
 }
 
-function BillRow({ bill, automated }: { bill: Bill; automated: boolean }) {
-  const attrs = bill.attributes;
-  const subtitle = [
-    compactFrequency(attrs.repeat_freq),
-    attrs.next_expected_match || attrs.date ? `Next ${dateLabel(attrs.next_expected_match ?? attrs.date, "short")}` : null,
-    automated ? "Automated" : "Tracked only",
+function ObligationRow({ obligation }: { obligation: RecurringObligation }) {
+  const flow = [obligation.source, obligation.destination].filter(Boolean).join(" → ");
+  const details = [
+    shortCadence(obligation.frequency),
+    obligation.nextDate ? `Next ${dateLabel(obligation.nextDate, "short")}` : null,
+    obligation.budget ?? obligation.category,
   ].filter(Boolean).join(" · ");
 
   return (
-    <div className="px-4 py-3">
+    <div className="px-4 py-3" data-obligation-id={obligation.id}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <KindBadge kind="bill" />
-            <StatusBadge active={attrs.active ?? false} />
-            {automated ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-success/20 bg-success/10 px-2 py-1 text-[11px] font-medium text-success">
-                <Repeat2 className="h-3 w-3" />
-                Automated
-              </span>
-            ) : null}
-          </div>
-          <h3 className="truncate text-sm font-semibold text-foreground">{attrs.name}</h3>
-          <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
-          {attrs.notes ? <p className="line-clamp-2 text-[11px] text-muted-foreground">{attrs.notes}</p> : null}
+          <ObligationStatus obligation={obligation} />
+          <h3 className="truncate text-sm font-semibold text-foreground">{obligation.name}</h3>
+          <p className="truncate text-xs text-muted-foreground">{details}</p>
+          {flow ? <p className="truncate text-[11px] text-muted-foreground">{flow}</p> : null}
         </div>
         <div className="shrink-0 text-right text-sm">
-          <BillAmount bill={bill} />
+          <ObligationAmount obligation={obligation} />
         </div>
       </div>
+
+      {obligation.reserve ? (
+        <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-transfer/15 bg-transfer/5 px-3 py-2 text-xs">
+          <div className="min-w-0">
+            <p className="flex items-center gap-1 font-medium text-transfer">
+              <ArrowRightLeft className="h-3.5 w-3.5" />
+              Card reserve · not spending
+            </p>
+            <p className="truncate text-[11px] text-muted-foreground">
+              {[obligation.reserve.destination, obligation.reserve.nextDate ? `Next ${dateLabel(obligation.reserve.nextDate, "short")}` : null]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          </div>
+          <Money
+            amount={obligation.reserve.amount}
+            currency={obligation.reserve.currency}
+            className="shrink-0 text-xs text-transfer"
+          />
+        </div>
+      ) : null}
+
+      {obligation.attention.length > 0 ? (
+        <p className="mt-2 flex items-center gap-1 text-[11px] text-warning">
+          <AlertTriangle className="h-3 w-3 shrink-0" />
+          {obligation.attention.join(" · ")}
+        </p>
+      ) : null}
     </div>
+  );
+}
+
+function FireflySetup({ data }: { data: Awaited<ReturnType<typeof getRecurringOverview>> }) {
+  return (
+    <details className="group rounded-xl border bg-card">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium">
+        <span className="flex items-center gap-2">
+          <ReceiptText className="h-4 w-4 text-muted-foreground" />
+          Firefly setup
+        </span>
+        <span className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
+          {data.bills.length} bills · {data.recurrences.length} automations
+          <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+        </span>
+      </summary>
+      <div className="grid gap-2 border-t p-4 text-xs sm:grid-cols-3">
+        <HeroFact label="Bills" value={`${data.bills.length} track obligations`} />
+        <HeroFact label="Automations" value={`${data.totals.activeScheduledWithdrawals} create expenses`} />
+        <HeroFact label="Card reserves" value={`${data.totals.activeScheduledTransfers} move cash, not spending`} />
+      </div>
+    </details>
   );
 }
 
@@ -281,75 +283,67 @@ export default async function RecurringPage() {
   }
 
   const { data } = result;
-  const scheduled = [...data.scheduled].sort((a, b) => {
-    if (a.active !== b.active) return a.active ? -1 : 1;
-    return timestamp(a.nextDate) - timestamp(b.nextDate) || a.description.localeCompare(b.description);
-  });
-  const activeScheduled = scheduled.filter((item) => item.active);
-  const nextExpense = activeScheduled.find((item) => item.recurrenceType === "withdrawal");
-  const nextReserve = activeScheduled.find((item) => item.recurrenceType === "transfer");
-  const bills = [...data.bills].sort((a, b) => {
-    if ((a.attributes.active ?? false) !== (b.attributes.active ?? false)) {
-      return a.attributes.active ? -1 : 1;
-    }
-    return timestamp(a.attributes.next_expected_match ?? a.attributes.date) -
-      timestamp(b.attributes.next_expected_match ?? b.attributes.date) ||
-      a.attributes.name.localeCompare(b.attributes.name);
-  });
-  const automatedBillKeys = new Set(
-    data.scheduled.flatMap((item) => [item.billId, item.billName]).filter(Boolean)
+  const obligations = [...data.obligations].sort((a, b) =>
+    timestamp(a.nextDate) - timestamp(b.nextDate) || a.name.localeCompare(b.name)
   );
+  const nextExpense = obligations.find(
+    (obligation) => obligation.active && obligation.status !== "reserve_only"
+  );
+  const attention = obligations.filter((obligation) => obligation.attention.length > 0);
 
   return (
     <div className="space-y-4">
       <PageHeader
         title="Recurring expenses"
-        subtitle="Bills, subscriptions, and predictable charges."
+        subtitle="One clear view of obligations, automations, and card reserves."
       />
 
-      <HeroSummary data={data} nextExpense={nextExpense} nextReserve={nextReserve} />
+      <HeroSummary data={data} nextExpense={nextExpense} />
 
       <section className="space-y-3">
         <SectionHeader
-          title="Schedule"
-          description="Expenses first. Reserve transfers are shown separately and do not count as spending."
+          title="Obligations"
+          description="One row per recurring commitment. Bills and automations are already combined."
           action={
             <div className="hidden items-center gap-1 text-xs text-muted-foreground sm:flex">
               <CalendarClock className="h-3.5 w-3.5" />
-              Next first
+              Next due first
             </div>
           }
         />
 
-        {scheduled.length === 0 ? (
-          <Empty title="No scheduled recurrences" description="No Firefly recurrences were returned for this account." />
+        {obligations.length === 0 ? (
+          <Empty title="No recurring obligations" description="No Firefly bills or recurrences were returned for this account." />
         ) : (
           <CompactList>
-            {scheduled.map((item) => <ScheduledRow key={item.id} item={item} />)}
-          </CompactList>
-        )}
-      </section>
-
-      <section className="space-y-3">
-        <SectionHeader
-          title="Bills & subscriptions"
-          description="Expected recurring charges tracked by Firefly bills."
-        />
-
-        {bills.length === 0 ? (
-          <Empty title="No bills configured" description="No Firefly bills were returned for this account." />
-        ) : (
-          <CompactList>
-            {bills.map((bill) => (
-              <BillRow
-                key={bill.id}
-                bill={bill}
-                automated={automatedBillKeys.has(bill.id) || automatedBillKeys.has(bill.attributes.name)}
-              />
+            {obligations.map((obligation) => (
+              <ObligationRow key={obligation.id} obligation={obligation} />
             ))}
           </CompactList>
         )}
       </section>
+
+      {attention.length > 0 ? (
+        <section className="space-y-3">
+          <SectionHeader
+            title="Needs attention"
+            description="Firefly links that could not be consolidated with high confidence."
+          />
+          <Card className="divide-y overflow-hidden p-0">
+            {attention.map((obligation) => (
+              <div key={obligation.id} className="flex items-start gap-2 px-4 py-3 text-xs">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+                <div>
+                  <p className="font-medium text-foreground">{obligation.name}</p>
+                  <p className="text-muted-foreground">{obligation.attention.join(" · ")}</p>
+                </div>
+              </div>
+            ))}
+          </Card>
+        </section>
+      ) : null}
+
+      <FireflySetup data={data} />
     </div>
   );
 }
