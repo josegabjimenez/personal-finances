@@ -54,12 +54,9 @@ function shortCadence(value: string | null | undefined) {
 }
 
 function ObligationStatus({ obligation }: { obligation: RecurringObligation }) {
+  if (obligation.status === "automated") return null;
+
   const config = {
-    automated: {
-      label: "Automated",
-      icon: Repeat2,
-      className: "text-muted-foreground",
-    },
     tracked: {
       label: "Tracked only",
       icon: ReceiptText,
@@ -75,8 +72,18 @@ function ObligationStatus({ obligation }: { obligation: RecurringObligation }) {
       icon: AlertTriangle,
       className: "text-muted-foreground",
     },
+    mixed: {
+      label: "Mixed status",
+      icon: AlertTriangle,
+      className: "text-warning",
+    },
     reserve_only: {
       label: "Unlinked reserve",
+      icon: ArrowRightLeft,
+      className: "text-warning",
+    },
+    transfer_only: {
+      label: "Unclassified transfer",
       icon: ArrowRightLeft,
       className: "text-warning",
     },
@@ -133,7 +140,7 @@ function HeroSummary({
           label="Card reserves"
           value={
             <>
-              <Money amount={data.totals.transferAmount} currency={data.totals.currency} /> · not spending
+              <Money amount={data.totals.cardReserveAmount} currency={data.totals.currency} /> · not spending
             </>
           }
         />
@@ -171,14 +178,17 @@ function SectionHeader({
 }
 
 function ObligationAmount({ obligation }: { obligation: RecurringObligation }) {
-  if (obligation.status === "reserve_only" && obligation.reserve) {
+  if (obligation.status === "reserve_only" && obligation.reserveAutomations[0]) {
     return (
       <Money
-        amount={obligation.reserve.amount}
-        currency={obligation.reserve.currency}
+        amount={obligation.reserveAutomations[0].amount}
+        currency={obligation.reserveAutomations[0].currency}
         className="text-transfer"
       />
     );
+  }
+  if (obligation.status === "transfer_only") {
+    return <Money amount={obligation.amountMin} currency={obligation.currency} className="text-transfer" />;
   }
   if (obligation.amountMin === obligation.amountMax) {
     return <Money amount={obligation.amountMin} currency={obligation.currency} expense />;
@@ -213,33 +223,32 @@ function ObligationRow({ obligation }: { obligation: RecurringObligation }) {
         </div>
       </div>
 
-      {obligation.reserve ? (
-        <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-transfer/15 bg-transfer/5 px-3 py-2 text-xs">
-          <div className="min-w-0">
-            <p className="flex items-center gap-1 font-medium text-transfer">
-              <ArrowRightLeft className="h-3.5 w-3.5" />
-              Card reserve · not spending
-            </p>
-            <p className="truncate text-[11px] text-muted-foreground">
-              {[obligation.reserve.destination, obligation.reserve.nextDate ? `Next ${dateLabel(obligation.reserve.nextDate, "short")}` : null]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-          </div>
-          <Money
-            amount={obligation.reserve.amount}
-            currency={obligation.reserve.currency}
-            className="shrink-0 text-xs text-transfer"
-          />
-        </div>
-      ) : null}
+      {obligation.status !== "reserve_only"
+        ? obligation.reserveAutomations.map((reserve) => (
+            <div
+              key={reserve.id}
+              className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-transfer/15 bg-transfer/5 px-3 py-2 text-xs"
+            >
+              <div className="min-w-0">
+                <p className="flex items-center gap-1 font-medium text-transfer">
+                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                  Card reserve · not spending
+                </p>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  {[reserve.destination, reserve.nextDate ? `Next ${dateLabel(reserve.nextDate, "short")}` : null]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              </div>
+              <Money
+                amount={reserve.amount}
+                currency={reserve.currency}
+                className="shrink-0 text-xs text-transfer"
+              />
+            </div>
+          ))
+        : null}
 
-      {obligation.attention.length > 0 ? (
-        <p className="mt-2 flex items-center gap-1 text-[11px] text-warning">
-          <AlertTriangle className="h-3 w-3 shrink-0" />
-          {obligation.attention.join(" · ")}
-        </p>
-      ) : null}
     </div>
   );
 }
@@ -260,7 +269,7 @@ function FireflySetup({ data }: { data: Awaited<ReturnType<typeof getRecurringOv
       <div className="grid gap-2 border-t p-4 text-xs sm:grid-cols-3">
         <HeroFact label="Bills" value={`${data.bills.length} track obligations`} />
         <HeroFact label="Automations" value={`${data.totals.activeScheduledWithdrawals} create expenses`} />
-        <HeroFact label="Card reserves" value={`${data.totals.activeScheduledTransfers} move cash, not spending`} />
+        <HeroFact label="Card reserves" value={`${data.totals.activeCardReserves} verified transfers`} />
       </div>
     </details>
   );
@@ -276,26 +285,30 @@ export default async function RecurringPage() {
   if (!result.ok) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Recurring expenses" />
+        <PageHeader title="Obligations" />
         <ErrorCard title="Could not load recurring expenses" message={result.error} />
       </div>
     );
   }
 
   const { data } = result;
-  const obligations = [...data.obligations].sort((a, b) =>
-    timestamp(a.nextDate) - timestamp(b.nextDate) || a.name.localeCompare(b.name)
-  );
+  const obligations = [...data.obligations].sort((a, b) => {
+    if (a.active !== b.active) return a.active ? -1 : 1;
+    return timestamp(a.nextDate) - timestamp(b.nextDate) || a.name.localeCompare(b.name);
+  });
   const nextExpense = obligations.find(
-    (obligation) => obligation.active && obligation.status !== "reserve_only"
+    (obligation) =>
+      obligation.active &&
+      obligation.status !== "reserve_only" &&
+      obligation.status !== "transfer_only"
   );
   const attention = obligations.filter((obligation) => obligation.attention.length > 0);
 
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Recurring expenses"
-        subtitle="One clear view of obligations, automations, and card reserves."
+        title="Obligations"
+        subtitle="Bills, expense automations, and verified card reserves in one view."
       />
 
       <HeroSummary data={data} nextExpense={nextExpense} />
