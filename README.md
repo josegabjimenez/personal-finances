@@ -6,7 +6,7 @@ A fast, mobile-first PWA that reads your self-hosted [Firefly III](https://www.f
 - **Transactions** — list with search, filter by type and date range, pagination
 - **Accounts** — balances grouped by assets and liabilities
 - **Debts & Credit** — credit-card debt control for TC1/TC2/TC3, selectable periods, savings coverage, purchases/payments/reservations/fees, category/budget breakdowns, transaction detail views, and other liabilities
-- **Recurring** — Firefly bills, scheduled expenses, reserve-transfer automations, and recurring markers on transaction rows/details
+- **Recurring** — one consolidated obligations view combining Firefly bills, expense automations, linked card reserves, and recurring markers on transaction rows/details
 - **Budgets** — selectable monthly budget limits with a month picker, overview summary, and spent vs assigned progress bars
 - **Categories** — donut chart + breakdown of where your money went
 - **Piggy banks** — progress toward savings goals
@@ -70,7 +70,7 @@ Browser ─► Next.js route handler ─► Firefly III REST API
 - `app/api/firefly/[...path]` is an allow-listed passthrough that injects the bearer token server-side. Only a curated list of Firefly endpoints is forwarded.
 - RSC pages fetch from Firefly during the server render for fast first paint; TanStack Query re-validates in the background when the user revisits a page.
 - `/debts` reads Firefly server-side as the source of truth for liabilities, TC reserve asset accounts, and credit-card transactions for a selectable period (`?start=YYYY-MM-DD&end=YYYY-MM-DD` or `?month=YYYY-MM`). `/debts/[card]` exposes the detailed card transaction ledger with type/category/budget filters; credit-card payments/reservations are interpreted as debt movement, not new spending.
-- `/recurring` reads Firefly bills and recurrences server-side, separates scheduled expenses from reserve transfers, and transaction rows/details surface Firefly bill/recurrence metadata when present.
+- `/recurring` reads Firefly bills and recurrences server-side, consolidates each bill and expense automation into one obligation, nests high-confidence card reserves without counting them as spending, and surfaces ambiguous links only as `Needs attention`.
 - Serwist provides the service worker — caches static assets and slow-changing API responses (accounts, budgets, categories) with stale-while-revalidate; fast-changing ones (transactions, summary) use network-first with a 4s timeout.
 
 ## Scripts

@@ -5,40 +5,25 @@ import type {
   RecurringIndexBill,
   RecurringIndexTemplate,
 } from "./recurring-flags";
+import {
+  buildRecurringObligations,
+  isCardReserve,
+  type RecurringObligation,
+  type ScheduledRecurringTransaction,
+} from "./recurring-obligations";
 import type { Bill, Recurrence, RecurrenceTransaction } from "./types";
 
-export interface ScheduledRecurringTransaction {
-  id: string;
-  recurrenceId: string;
-  title: string;
-  recurrenceType: string;
-  active: boolean;
-  applyRules: boolean;
-  amount: number;
-  currency: string;
-  description: string;
-  source?: string | null;
-  sourceType?: string | null;
-  destination?: string | null;
-  destinationType?: string | null;
-  category?: string | null;
-  budget?: string | null;
-  billId?: string | null;
-  billName?: string | null;
-  tags: string[];
-  frequency: string;
-  cadenceDescription?: string | null;
-  nextDate?: string | null;
-  firstDate?: string | null;
-  latestDate?: string | null;
-  repeatUntil?: string | null;
-  notes?: string | null;
-}
+export type {
+  RecurringObligation,
+  RecurringObligationStatus,
+  ScheduledRecurringTransaction,
+} from "./recurring-obligations";
 
 export interface RecurringOverview {
   bills: Bill[];
   recurrences: Recurrence[];
   scheduled: ScheduledRecurringTransaction[];
+  obligations: RecurringObligation[];
   activeBills: Bill[];
   activeRecurrences: Recurrence[];
   totals: {
@@ -47,10 +32,15 @@ export interface RecurringOverview {
     activeScheduledTransactions: number;
     activeScheduledWithdrawals: number;
     activeScheduledTransfers: number;
+    activeCardReserves: number;
+    unclassifiedTransfers: number;
     withdrawalAmount: number;
     transferAmount: number;
+    cardReserveAmount: number;
     billAmountMin: number;
     billAmountMax: number;
+    activeObligations: number;
+    needsAttention: number;
     currency: string;
   };
 }
@@ -196,8 +186,10 @@ function scheduledFromRecurrence(
     amount: parseMoney(transaction.amount),
     currency: transaction.currency_code ?? "COP",
     description: transaction.description ?? recurrence.attributes.description ?? recurrence.attributes.title,
+    sourceId: transaction.source_id,
     source: transaction.source_name,
     sourceType: transaction.source_type,
+    destinationId: transaction.destination_id,
     destination: transaction.destination_name,
     destinationType: transaction.destination_type,
     category: transaction.category_name,
@@ -206,6 +198,9 @@ function scheduledFromRecurrence(
     billName: transaction.subscription_name,
     tags: transaction.tags ?? [],
     frequency: formatFrequency(recurrence),
+    cadenceType: recurrence.attributes.repetitions?.[0]?.type,
+    cadenceMoment: recurrence.attributes.repetitions?.[0]?.moment,
+    cadenceSkip: recurrence.attributes.repetitions?.[0]?.skip,
     cadenceDescription: recurrence.attributes.repetitions?.[0]?.description,
     nextDate: nextOccurrence(recurrence),
     firstDate: recurrence.attributes.first_date,
@@ -228,12 +223,18 @@ export async function getRecurringOverview(): Promise<RecurringOverview> {
     (recurrence) => recurrence.attributes.active ?? false
   );
   const activeScheduled = scheduled.filter((item) => item.active);
+  const activeTransfers = activeScheduled.filter(
+    (item) => item.recurrenceType === "transfer"
+  );
+  const activeCardReserves = activeTransfers.filter(isCardReserve);
+  const obligations = buildRecurringObligations(scheduled, bills);
   const currency = firstKnownCurrency(scheduled, bills);
 
   return {
     bills,
     recurrences,
     scheduled,
+    obligations,
     activeBills,
     activeRecurrences,
     totals: {
@@ -243,15 +244,14 @@ export async function getRecurringOverview(): Promise<RecurringOverview> {
       activeScheduledWithdrawals: activeScheduled.filter(
         (item) => item.recurrenceType === "withdrawal"
       ).length,
-      activeScheduledTransfers: activeScheduled.filter(
-        (item) => item.recurrenceType === "transfer"
-      ).length,
+      activeScheduledTransfers: activeTransfers.length,
+      activeCardReserves: activeCardReserves.length,
+      unclassifiedTransfers: activeTransfers.length - activeCardReserves.length,
       withdrawalAmount: activeScheduled
         .filter((item) => item.recurrenceType === "withdrawal")
         .reduce((sum, item) => sum + item.amount, 0),
-      transferAmount: activeScheduled
-        .filter((item) => item.recurrenceType === "transfer")
-        .reduce((sum, item) => sum + item.amount, 0),
+      transferAmount: activeTransfers.reduce((sum, item) => sum + item.amount, 0),
+      cardReserveAmount: activeCardReserves.reduce((sum, item) => sum + item.amount, 0),
       billAmountMin: activeBills.reduce(
         (sum, bill) => sum + parseMoney(bill.attributes.amount_min),
         0
@@ -260,6 +260,13 @@ export async function getRecurringOverview(): Promise<RecurringOverview> {
         (sum, bill) => sum + parseMoney(bill.attributes.amount_max),
         0
       ),
+      activeObligations: obligations.filter(
+        (obligation) =>
+          obligation.active &&
+          obligation.status !== "reserve_only" &&
+          obligation.status !== "transfer_only"
+      ).length,
+      needsAttention: obligations.filter((obligation) => obligation.attention.length > 0).length,
       currency,
     },
   };
