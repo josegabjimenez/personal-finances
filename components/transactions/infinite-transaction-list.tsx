@@ -3,8 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Money } from "@/components/common/money";
+import { Empty } from "@/components/common/empty";
 import { TransactionRow } from "./transaction-row";
 import type { TransactionGroup } from "@/lib/firefly/types";
+import {
+  summarizeTransactionEntries,
+  transactionGroupsToEntries,
+  type TransactionEntryContextFilter,
+} from "@/lib/firefly/transaction-entries";
 import {
   getRecurringTransactionMeta,
   type RecurringIndex,
@@ -18,71 +24,10 @@ interface Props {
   accountFilter?: string;
   categoryFilter?: string;
   tagFilter?: string;
+  typeFilter?: string;
+  contextFilter?: TransactionEntryContextFilter;
   recurringIndex?: RecurringIndex | null;
   defaultCurrency?: string;
-}
-
-function applyFilters(
-  groups: TransactionGroup[],
-  opts: {
-    q?: string;
-    account?: string;
-    category?: string;
-    tag?: string;
-    recurringIndex?: RecurringIndex | null;
-  }
-): TransactionGroup[] {
-  let out = groups;
-  if (opts.q) {
-    const q = opts.q.trim().toLowerCase();
-    out = out.filter((g) => {
-      const s = g.attributes.transactions[0];
-      const recurring = s ? getRecurringTransactionMeta(s, opts.recurringIndex) : null;
-      return [
-        s?.description,
-        s?.source_name,
-        s?.destination_name,
-        s?.category_name,
-        s?.budget_name,
-        s?.bill_name,
-        s?.subscription_name,
-        s?.recurrence_id,
-        recurring?.label,
-        recurring?.detail,
-        ...(s?.tags ?? []),
-        g.attributes.group_title,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(q);
-    });
-  }
-  if (opts.account) {
-    out = out.filter((g) => {
-      const s = g.attributes.transactions[0];
-      return s?.source_name === opts.account || s?.destination_name === opts.account;
-    });
-  }
-  if (opts.category) {
-    out = out.filter((g) => g.attributes.transactions[0]?.category_name === opts.category);
-  }
-  if (opts.tag) {
-    out = out.filter((g) => g.attributes.transactions[0]?.tags?.includes(opts.tag!) ?? false);
-  }
-  return out;
-}
-
-function computeTotal(groups: TransactionGroup[]): number {
-  return groups.reduce((sum, g) => {
-    const s = g.attributes.transactions[0];
-    if (!s) return sum;
-    const n = parseFloat(s.amount);
-    if (!Number.isFinite(n)) return sum;
-    if (s.type === "withdrawal") return sum - n;
-    if (s.type === "deposit") return sum + n;
-    return sum;
-  }, 0);
 }
 
 export function InfiniteTransactionList({
@@ -93,6 +38,8 @@ export function InfiniteTransactionList({
   accountFilter,
   categoryFilter,
   tagFilter,
+  typeFilter,
+  contextFilter,
   recurringIndex,
   defaultCurrency = "COP",
 }: Props) {
@@ -164,35 +111,44 @@ export function InfiniteTransactionList({
     return () => observer.disconnect();
   }, [fetchUrl]);
 
-  const displayed = applyFilters(allGroups, {
-    q: searchQuery,
-    account: accountFilter,
-    category: categoryFilter,
+  const displayed = transactionGroupsToEntries(allGroups, {
+    query: searchQuery,
+    type: typeFilter,
+    accountName: accountFilter,
+    categoryName: categoryFilter,
     tag: tagFilter,
-    recurringIndex,
+    ...contextFilter,
+    additionalSearchTerms: ({ split }) => {
+      const recurring = getRecurringTransactionMeta(split, recurringIndex);
+      return [recurring.label, recurring.detail];
+    },
   });
-
-  const currency = displayed[0]?.attributes.transactions[0]?.currency_code ?? defaultCurrency;
-  const total = computeTotal(displayed);
+  const summary = summarizeTransactionEntries(displayed, defaultCurrency);
 
   return (
     <div className="space-y-4">
       {displayed.length > 0 && (
         <div className="flex items-center justify-between px-1">
           <span className="text-xs text-muted-foreground">
-            {displayed.length} transaction{displayed.length !== 1 ? "s" : ""}
+            {summary.count} transaction{summary.count !== 1 ? "s" : ""}
             {!done ? "+" : ""}
           </span>
-          <Money amount={total} currency={currency} colorize className="text-sm font-medium" />
+          <Money
+            amount={summary.total}
+            currency={summary.currency}
+            colorize
+            className="text-sm font-medium"
+          />
         </div>
       )}
       {displayed.length > 0 && (
         <Card className="divide-y overflow-hidden p-0">
-          {displayed.map((g) => (
-            <TransactionRow key={g.id} group={g} recurringIndex={recurringIndex} />
+          {displayed.map((entry) => (
+            <TransactionRow key={entry.key} entry={entry} recurringIndex={recurringIndex} />
           ))}
         </Card>
       )}
+      {displayed.length === 0 && done && <Empty title="No transactions match your filters" />}
       {!done && (
         <div ref={sentinelRef} className="py-6 text-center text-xs text-muted-foreground">
           {isLoading ? "Loading…" : ""}

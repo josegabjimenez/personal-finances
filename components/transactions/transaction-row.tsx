@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Repeat2 } from "lucide-react";
-import type { TransactionGroup } from "@/lib/firefly/types";
+import type { TransactionEntry } from "@/lib/firefly/transaction-entries";
+import {
+  signedTransactionAmount,
+  transactionEntryHref,
+} from "@/lib/firefly/transaction-entries";
 import {
   getRecurringTransactionMeta,
   type RecurringIndex,
@@ -23,24 +27,15 @@ function iconFor(type: string) {
   }
 }
 
-function signedAmount(type: string, amount: string) {
-  const n = parseFloat(amount);
-  if (!Number.isFinite(n)) return 0;
-  if (type === "withdrawal") return -Math.abs(n);
-  if (type === "deposit") return Math.abs(n);
-  return n; // transfer
-}
-
 export function TransactionRow({
-  group,
+  entry,
   recurringIndex,
 }: {
-  group: TransactionGroup;
+  entry: TransactionEntry;
   recurringIndex?: RecurringIndex | null;
 }) {
-  const split = group.attributes.transactions[0];
-  if (!split) return null;
-  const amount = signedAmount(split.type, split.amount);
+  const { group, split } = entry;
+  const amount = signedTransactionAmount(split);
 
   const title =
     split.description ||
@@ -61,7 +56,7 @@ export function TransactionRow({
 
   return (
     <Link
-      href={`/transactions/${group.id}`}
+      href={transactionEntryHref(entry)}
       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/60"
     >
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted">

@@ -3,6 +3,7 @@ import { ArrowLeft, Repeat2 } from "lucide-react";
 import { fireflyFetch } from "@/lib/firefly/client";
 import { getRecurringIndex } from "@/lib/firefly/recurring";
 import { transactionSchema } from "@/lib/firefly/types";
+import { selectTransactionEntry } from "@/lib/firefly/transaction-entries";
 import { getRecurringTransactionMeta } from "@/lib/firefly/recurring-flags";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Money } from "@/components/common/money";
@@ -12,22 +13,35 @@ import { ErrorCard } from "@/components/common/error-card";
 
 const envelope = z.object({ data: transactionSchema });
 
+interface SearchParams {
+  journal?: string | string[];
+  split?: string | string[];
+  index?: string | string[];
+}
+
 export const dynamic = "force-dynamic";
 
 export default async function TransactionDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<SearchParams>;
 }) {
-  const { id } = await params;
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
   try {
     const [raw, recurringIndex] = await Promise.all([
       fireflyFetch(`/transactions/${id}`, { revalidate: 60 }),
       getRecurringIndex().catch(() => ({ bills: [], templates: [] })),
     ]);
     const { data } = envelope.parse(raw);
-    const split = data.attributes.transactions[0];
-    if (!split) throw new Error("Transaction has no splits");
+    const entry = selectTransactionEntry(data, {
+      journalId: firstValue(sp.journal),
+      splitIndex: parseSplitIndex(firstValue(sp.split) ?? firstValue(sp.index)),
+    });
+    if (!entry) throw new Error("Transaction has no splits");
+    const { split, splitIndex } = entry;
+    const splitCount = data.attributes.transactions.length;
     const recurring = getRecurringTransactionMeta(split, recurringIndex);
 
     const rows: [string, React.ReactNode][] = [
@@ -83,6 +97,11 @@ export default async function TransactionDetailPage({
             <CardTitle className="text-foreground text-base">
               {split.description || "(no description)"}
             </CardTitle>
+            {splitCount > 1 ? (
+              <p className="text-xs text-muted-foreground">
+                Split {splitIndex + 1} of {splitCount} in this grouped transaction
+              </p>
+            ) : null}
           </CardHeader>
           <CardContent>
             <dl className="divide-y">
@@ -120,4 +139,13 @@ export default async function TransactionDetailPage({
 
 function capitalize(s: string) {
   return s ? s[0].toUpperCase() + s.slice(1) : s;
+}
+
+function firstValue(value?: string | string[]) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function parseSplitIndex(value?: string) {
+  if (!value || !/^\d+$/.test(value)) return undefined;
+  return Number(value);
 }

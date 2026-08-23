@@ -7,6 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "test:transaction-splits": "node --experimental-strip-types --experimental-default-type=module scripts/transaction-splits.test.mjs",
     "generate:icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
