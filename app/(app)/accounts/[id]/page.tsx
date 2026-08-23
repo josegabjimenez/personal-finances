@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getAccount, listAccountTransactions } from "@/lib/firefly/queries";
+import {
+  summarizeTransactionEntries,
+  transactionGroupsToEntries,
+} from "@/lib/firefly/transaction-entries";
 import { toYMD, startOfMonth, endOfMonth } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Money } from "@/components/common/money";
@@ -54,28 +58,32 @@ export default async function AccountDetailPage({
     </Link>
   );
 
-  try {
-    const [account, { groups, totalPages }] = await Promise.all([
-      getAccount(id),
-      listAccountTransactions(id, { page: 1, limit, start: effectiveStart, end: effectiveEnd }),
-    ]);
+  const loadResult = await Promise.all([
+    getAccount(id),
+    listAccountTransactions(id, { page: 1, limit, start: effectiveStart, end: effectiveEnd }),
+  ])
+    .then((data) => ({ data, error: null }))
+    .catch((error: unknown) => ({ data: null, error }));
+
+  if (!loadResult.data) {
+    const message = loadResult.error instanceof Error ? loadResult.error.message : undefined;
+    return (
+      <div className="space-y-4">
+        {backLink}
+        <ErrorCard message={message} />
+      </div>
+    );
+  }
+
+  const [account, { groups, totalPages }] = loadResult.data;
 
     const name = account.attributes.name;
     const balance = account.attributes.current_balance;
     const currency = account.attributes.currency_code ?? "COP";
 
     const allFetchUrl = `/api/firefly/accounts/${id}/transactions?limit=50`;
-
-    const primaryCurrency = groups[0]?.attributes.transactions[0]?.currency_code ?? currency;
-    const total = groups.reduce((sum, g) => {
-      const s = g.attributes.transactions[0];
-      if (!s) return sum;
-      const n = parseFloat(s.amount);
-      if (!Number.isFinite(n)) return sum;
-      if (s.type === "withdrawal") return sum - n;
-      if (s.type === "deposit") return sum + n;
-      return sum;
-    }, 0);
+    const entries = transactionGroupsToEntries(groups, { accountId: id });
+    const summary = summarizeTransactionEntries(entries, currency);
 
     return (
       <div className="space-y-4">
@@ -103,23 +111,29 @@ export default async function AccountDetailPage({
               initialGroups={groups}
               totalPages={totalPages}
               fetchUrl={allFetchUrl}
+              contextFilter={{ accountId: id }}
               defaultCurrency={currency}
             />
           )
         ) : (
-          groups.length === 0 ? (
+          entries.length === 0 ? (
             <Empty title="No transactions for this account" />
           ) : (
             <>
               <div className="flex items-center justify-between px-1">
                 <span className="text-xs text-muted-foreground">
-                  {groups.length} transaction{groups.length !== 1 ? "s" : ""}
+                  {summary.count} transaction{summary.count !== 1 ? "s" : ""}
                 </span>
-                <Money amount={total} currency={primaryCurrency} colorize className="text-sm font-medium" />
+                <Money
+                  amount={summary.total}
+                  currency={summary.currency}
+                  colorize
+                  className="text-sm font-medium"
+                />
               </div>
               <Card className="divide-y overflow-hidden p-0">
-                {groups.map((g) => (
-                  <TransactionRow key={g.id} group={g} />
+                {entries.map((entry) => (
+                  <TransactionRow key={entry.key} entry={entry} />
                 ))}
               </Card>
             </>
@@ -127,13 +141,4 @@ export default async function AccountDetailPage({
         )}
       </div>
     );
-  } catch (err) {
-    const message = err instanceof Error ? err.message : undefined;
-    return (
-      <div className="space-y-4">
-        {backLink}
-        <ErrorCard message={message} />
-      </div>
-    );
-  }
 }

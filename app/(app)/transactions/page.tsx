@@ -1,6 +1,10 @@
 import { listTransactions, listAccounts, listCategories, listTags } from "@/lib/firefly/queries";
 import { getRecurringIndex } from "@/lib/firefly/recurring";
 import { getRecurringTransactionMeta } from "@/lib/firefly/recurring-flags";
+import {
+  summarizeTransactionEntries,
+  transactionGroupsToEntries,
+} from "@/lib/firefly/transaction-entries";
 import { toYMD, startOfMonth, endOfMonth } from "@/lib/format";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
@@ -50,20 +54,33 @@ export default async function TransactionsPage({
   // Month view: fetch all at once (no pagination). All view: first page only, then infinite scroll.
   const limit = isAllView ? 50 : 500;
 
-  try {
-    const [{ groups, totalPages }, accounts, categories, tags, recurringIndex] = await Promise.all([
-      listTransactions({
-        page: 1,
-        limit,
-        type: sp.type,
-        start: effectiveStart,
-        end: effectiveEnd,
-      }),
-      listAccounts("asset").catch(() => []),
-      listCategories().catch(() => []),
-      listTags().catch(() => []),
-      getRecurringIndex().catch(() => ({ bills: [], templates: [] })),
-    ]);
+  const loadResult = await Promise.all([
+    listTransactions({
+      page: 1,
+      limit,
+      type: sp.type,
+      start: effectiveStart,
+      end: effectiveEnd,
+    }),
+    listAccounts("asset").catch(() => []),
+    listCategories().catch(() => []),
+    listTags().catch(() => []),
+    getRecurringIndex().catch(() => ({ bills: [], templates: [] })),
+  ])
+    .then((data) => ({ data, error: null }))
+    .catch((error: unknown) => ({ data: null, error }));
+
+  if (!loadResult.data) {
+    const message = loadResult.error instanceof Error ? loadResult.error.message : undefined;
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Transactions" />
+        <ErrorCard message={message} />
+      </div>
+    );
+  }
+
+  const [{ groups, totalPages }, accounts, categories, tags, recurringIndex] = loadResult.data;
 
     // Build Firefly proxy URL for infinite scroll (All view)
     const allFetchUrl = (() => {
@@ -72,48 +89,19 @@ export default async function TransactionsPage({
       return `/api/firefly/transactions?${params.toString()}`;
     })();
 
-    // Month view: apply client-side filters to the full fetched batch
-    const q = (sp.q ?? "").trim().toLowerCase();
-    let filtered = groups;
-
-    if (!isAllView) {
-      if (q) {
-        filtered = filtered.filter((g) => {
-          const s = g.attributes.transactions[0];
-          const recurring = s ? getRecurringTransactionMeta(s, recurringIndex) : null;
-          return [
-            s?.description, s?.source_name, s?.destination_name,
-            s?.category_name, s?.budget_name, s?.bill_name, s?.subscription_name,
-            s?.recurrence_id, recurring?.label, recurring?.detail, ...(s?.tags ?? []),
-            g.attributes.group_title,
-          ]
-            .filter(Boolean).join(" ").toLowerCase().includes(q);
-        });
-      }
-      if (sp.account) {
-        filtered = filtered.filter((g) => {
-          const s = g.attributes.transactions[0];
-          return s?.source_name === sp.account || s?.destination_name === sp.account;
-        });
-      }
-      if (sp.category) {
-        filtered = filtered.filter((g) => g.attributes.transactions[0]?.category_name === sp.category);
-      }
-      if (sp.tag) {
-        filtered = filtered.filter((g) => g.attributes.transactions[0]?.tags?.includes(sp.tag!) ?? false);
-      }
-    }
-
-    const primaryCurrency = filtered[0]?.attributes.transactions[0]?.currency_code ?? "COP";
-    const total = filtered.reduce((sum, g) => {
-      const s = g.attributes.transactions[0];
-      if (!s) return sum;
-      const n = parseFloat(s.amount);
-      if (!Number.isFinite(n)) return sum;
-      if (s.type === "withdrawal") return sum - n;
-      if (s.type === "deposit") return sum + n;
-      return sum;
-    }, 0);
+    // Flatten every Firefly split, then apply filters to each row.
+    const filtered = transactionGroupsToEntries(groups, {
+      query: sp.q,
+      type: sp.type,
+      accountName: sp.account,
+      categoryName: sp.category,
+      tag: sp.tag,
+      additionalSearchTerms: ({ split }) => {
+        const recurring = getRecurringTransactionMeta(split, recurringIndex);
+        return [recurring.label, recurring.detail];
+      },
+    });
+    const summary = summarizeTransactionEntries(filtered, "COP");
 
     return (
       <div className="space-y-4">
@@ -145,6 +133,7 @@ export default async function TransactionsPage({
               accountFilter={sp.account}
               categoryFilter={sp.category}
               tagFilter={sp.tag}
+              typeFilter={sp.type}
               recurringIndex={recurringIndex}
             />
           )
@@ -156,13 +145,22 @@ export default async function TransactionsPage({
             <>
               <div className="flex items-center justify-between px-1">
                 <span className="text-xs text-muted-foreground">
-                  {filtered.length} transaction{filtered.length !== 1 ? "s" : ""}
+                  {summary.count} transaction{summary.count !== 1 ? "s" : ""}
                 </span>
-                <Money amount={total} currency={primaryCurrency} colorize className="text-sm font-medium" />
+                <Money
+                  amount={summary.total}
+                  currency={summary.currency}
+                  colorize
+                  className="text-sm font-medium"
+                />
               </div>
               <Card className="divide-y overflow-hidden p-0">
-                {filtered.map((g) => (
-                  <TransactionRow key={g.id} group={g} recurringIndex={recurringIndex} />
+                {filtered.map((entry) => (
+                  <TransactionRow
+                    key={entry.key}
+                    entry={entry}
+                    recurringIndex={recurringIndex}
+                  />
                 ))}
               </Card>
             </>
@@ -170,13 +168,4 @@ export default async function TransactionsPage({
         )}
       </div>
     );
-  } catch (err) {
-    const message = err instanceof Error ? err.message : undefined;
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Transactions" />
-        <ErrorCard message={message} />
-      </div>
-    );
-  }
 }

@@ -6,6 +6,7 @@ import {
   interpretSummary,
   listTransactions,
 } from "@/lib/firefly/queries";
+import { transactionGroupsToEntries } from "@/lib/firefly/transaction-entries";
 import { PageHeader } from "@/components/page-header";
 import { NetWorthCard } from "@/components/dashboard/net-worth-card";
 import { MonthTiles } from "@/components/dashboard/month-tiles";
@@ -26,6 +27,7 @@ export default async function DashboardPage() {
     const s = interpretSummary(summary);
     const currency =
       s.netWorth?.currency ?? s.balance?.currency ?? s.spent?.currency ?? "USD";
+    const recentEntries = transactionGroupsToEntries(txns.groups).slice(0, 5);
 
     return (
       <div className="space-y-6">
@@ -56,12 +58,12 @@ export default async function DashboardPage() {
               View all <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          {txns.groups.length === 0 ? (
+          {recentEntries.length === 0 ? (
             <Empty title="No transactions yet" />
           ) : (
             <Card className="divide-y overflow-hidden p-0">
-              {txns.groups.map((g) => (
-                <TransactionRow key={g.id} group={g} />
+              {recentEntries.map((entry) => (
+                <TransactionRow key={entry.key} entry={entry} />
               ))}
             </Card>
           )}
