@@ -36,7 +36,6 @@ async function handle(req: NextRequest, path: string[]) {
     const res = await fireflyProxy(fullPath, {
       method: req.method,
       search: req.nextUrl.searchParams,
-      body: ["GET", "HEAD"].includes(req.method) ? null : await req.text(),
     });
     const body = await res.arrayBuffer();
     return new NextResponse(body, {
@@ -58,18 +57,6 @@ async function handle(req: NextRequest, path: string[]) {
 type Ctx = { params: Promise<{ path: string[] }> };
 
 export async function GET(req: NextRequest, ctx: Ctx) {
-  const { path } = await ctx.params;
-  return handle(req, path);
-}
-export async function POST(req: NextRequest, ctx: Ctx) {
-  const { path } = await ctx.params;
-  return handle(req, path);
-}
-export async function PUT(req: NextRequest, ctx: Ctx) {
-  const { path } = await ctx.params;
-  return handle(req, path);
-}
-export async function DELETE(req: NextRequest, ctx: Ctx) {
   const { path } = await ctx.params;
   return handle(req, path);
 }

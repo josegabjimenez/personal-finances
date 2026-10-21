@@ -67,7 +67,7 @@ Browser ─► Next.js route handler ─► Firefly III REST API
 
 - `middleware.ts` gates every route except `/login`, `/offline`, `/api/auth/*`, and static assets. Redirects to `/login` if the session cookie is missing or invalid.
 - `app/api/auth/login` compares the submitted password against `APP_PASSWORD` with constant-time equality, then issues an HMAC-signed HTTP-only cookie (`jose`).
-- `app/api/firefly/[...path]` is an allow-listed passthrough that injects the bearer token server-side. Only a curated list of Firefly endpoints is forwarded.
+- `app/api/firefly/[...path]` is a read-only, allow-listed passthrough that injects the bearer token server-side. Only GET and HEAD requests to curated Firefly endpoints are forwarded. Mutation methods return 405; OPTIONS advertises the read-only methods without contacting Firefly. The shared client also rejects unsupported methods and request bodies before configuration lookup or network access.
 - RSC pages fetch from Firefly during the server render for fast first paint; TanStack Query re-validates in the background when the user revisits a page.
 - `/debts` reads Firefly server-side as the source of truth for liabilities, TC reserve asset accounts, and credit-card transactions for a selectable period (`?start=YYYY-MM-DD&end=YYYY-MM-DD` or `?month=YYYY-MM`). `/debts/[card]` exposes the detailed card transaction ledger with type/category/budget filters; credit-card payments/reservations are interpreted as debt movement, not new spending.
 - `/recurring` reads Firefly bills and recurrences server-side, consolidates each bill and expense automation into one obligation, nests high-confidence card reserves without counting them as spending, and surfaces ambiguous links only as `Needs attention`.
@@ -81,7 +81,14 @@ Browser ─► Next.js route handler ─► Firefly III REST API
 | `npm run build` | Production build (uses webpack so Serwist works). |
 | `npm start` | Start the production build locally. |
 | `npm run lint` | Lint. |
+| `npm run test:firefly-read-only` | Verify the client and authenticated API against synthetic data and a loopback fake Firefly server. |
 | `npm run generate:icons` | Re-render the PWA icons from `public/icon.svg`. |
+
+### Read-only boundary regression
+
+Run `npm run test:firefly-read-only` after installing the locked dependencies. The suite starts a temporary local Next.js server, overrides the Firefly URL and all authentication values with synthetic test values, and checks that denied requests never reach the fake upstream. It does not require a real Firefly instance, token, or financial data.
+
+The [pilot verification report](docs/reviews/firefly-read-only-pilot.md) records the acceptance checks, reproduction commands, and limits.
 
 ## Roadmap
 

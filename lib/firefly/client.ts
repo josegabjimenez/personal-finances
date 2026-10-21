@@ -23,14 +23,27 @@ export class FireflyConfigError extends Error {
   }
 }
 
+export class FireflyReadOnlyError extends Error {
+  constructor() {
+    super("Firefly III access is read-only: only GET/HEAD without a request body are allowed.");
+    this.name = "FireflyReadOnlyError";
+  }
+}
+
+function assertReadOnlyRequest(method: string, body: unknown) {
+  if ((method !== "GET" && method !== "HEAD") || body != null) {
+    throw new FireflyReadOnlyError();
+  }
+}
+
 type SearchParamValue = string | number | boolean | null | undefined;
 
 export interface FireflyFetchOptions {
   searchParams?: Record<string, SearchParamValue>;
   revalidate?: number | false;
   tags?: string[];
-  method?: "GET" | "POST" | "PUT" | "DELETE";
-  body?: unknown;
+  method?: "GET";
+  body?: never;
   signal?: AbortSignal;
 }
 
@@ -67,17 +80,17 @@ export async function fireflyFetch<T = unknown>(
   path: string,
   opts: FireflyFetchOptions = {}
 ): Promise<T> {
+  const method = opts.method ?? "GET";
+  assertReadOnlyRequest(method, opts.body);
   const { baseUrl, token } = getConfig();
   const url = buildUrl(baseUrl, path, opts.searchParams);
 
   const res = await fetch(url, {
-    method: opts.method ?? "GET",
+    method,
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.api+json",
-      ...(opts.body ? { "Content-Type": "application/json" } : {}),
     },
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
     signal: opts.signal,
     next:
       opts.revalidate === false
@@ -115,8 +128,9 @@ export async function fireflyFetch<T = unknown>(
  */
 export async function fireflyProxy(
   path: string,
-  init: { method: string; search: URLSearchParams; body?: BodyInit | null }
+  init: { method: string; search: URLSearchParams; body?: never }
 ): Promise<Response> {
+  assertReadOnlyRequest(init.method, init.body);
   const { baseUrl, token } = getConfig();
   const cleanedPath = path.startsWith("/") ? path : `/${path}`;
   const url = new URL(`${baseUrl}/api/v1${cleanedPath}`);
@@ -128,7 +142,6 @@ export async function fireflyProxy(
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.api+json",
     },
-    body: init.body ?? undefined,
     cache: "no-store",
   });
 }
