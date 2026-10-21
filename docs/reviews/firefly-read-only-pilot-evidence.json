@@ -1,0 +1,43 @@
+{
+  "base_commit": "9d5c5407c83e5b8a767cf37bb52170d1c6c290ff",
+  "branch": "fix/firefly-read-only-boundary",
+  "baseline": {
+    "baseline": "unmodified main 9d5c540",
+    "execution": "compiled actual client with fetch stub; no network",
+    "calls": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:9/api/v1/transactions"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:9/api/v1/transactions"
+      }
+    ]
+  },
+  "final_regression_output": "\n> personal-finances@0.1.0 test:firefly-read-only\n> node --test scripts/firefly-read-only.test.mjs\n\nHTTP boundary: real sessions, GET/HEAD, local OPTIONS, denied writes/paths, and auth POST routes verified\nShared client: unsafe verbs and supplied bodies rejected before configuration/network; safe reads preserved\nFirefly read-only regression passed using synthetic data and loopback servers only\n\u2714 scripts/firefly-read-only.test.mjs (3599.301917ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 3617.484291\n",
+  "interruption_checks": [
+    {
+      "signal": "SIGINT",
+      "exitCode": 130,
+      "temporaryNextProcessGroupStopped": true
+    },
+    {
+      "signal": "SIGTERM",
+      "exitCode": 143,
+      "temporaryNextProcessGroupStopped": true
+    }
+  ],
+  "other_checks_passed": [
+    "eslint",
+    "tsc --noEmit --incremental false",
+    "transaction-splits via compatible direct invocation",
+    "git diff --check",
+    "clean-base git apply --check"
+  ],
+  "real_firefly_accessed": false,
+  "merged": false,
+  "deployed": false,
+  "verified_on": "2026-10-21",
+  "status": "needs_review"
+}
