@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { updateOfflineSessionState } from "@/lib/auth/client-session";
 
 export function LoginForm({ next }: { next: string }) {
   const router = useRouter();
@@ -28,6 +29,7 @@ export function LoginForm({ next }: { next: string }) {
         setError(data.error ?? "Sign in failed");
         return;
       }
+      await updateOfflineSessionState("PF_SESSION_ACTIVE");
       router.replace(next || "/");
       router.refresh();
     } catch {
