@@ -27,4 +27,14 @@ The build still emits warnings for the existing middleware naming convention and
 
 This verifies the build repair. The [original browser assessment](./sign-out-offline-privacy.md) describes the earlier baseline and reproduced exposure; its saved observations do not verify the later privacy implementation. Browser privacy scenarios, production connectivity, and device behavior were not rerun for this two-line correction.
 
-The failed Vercel deployment belongs to the older `f8e31fd` commit. A fresh lookup before publication found no Vercel deployment or GitHub status for `fc7f6f5`. The existing branch preview exclusion is unchanged, so a new Vercel build was not triggered. Local build success is not a successful Vercel deployment. No merge or production deployment was performed.
+The failed Vercel deployment belongs to the older `f8e31fd` commit. At the initial build-repair handoff, the branch preview exclusion still prevented a fresh remote build; that state is historical and superseded by the authorized preview run below.
+
+## Authorized automatic preview builds
+
+On 2026-10-22 Jose authorized previews for this PR and future Personal Finances PRs. Commit `2181aa14a6fd55dff3e71505751159b098942b12` removes the three stale `git.deploymentEnabled: false` branch exceptions from `vercel.json`, restoring Vercel's default Git deployment behavior. The linked `personal-finances` project's `previewDeploymentsDisabled` setting was explicitly set to `false`. The production branch configuration was not changed. An independent read-only review found no actionable issues in this configuration change.
+
+The existing Git integration automatically built that exact commit on `test/sign-out-offline-privacy`: [deployment `dpl_4nd14dDnMF7Gd1m55VnGWKdAr7w2`](https://vercel.com/jose-gabriels-projects-a796812a/personal-finances/4nd14dDnMF7Gd1m55VnGWKdAr7w2), [preview URL](https://personal-finances-dr3tjfrxr-jose-gabriels-projects-a796812a.vercel.app). Vercel reported `READY`, and GitHub's `Vercel` status reported `success` / `Deployment has completed`. No manual retry was needed.
+
+The remote build completed webpack compilation, TypeScript, all 7 static pages, and build traces; Vercel reported `Build Completed` in 29 seconds. This confirms the earlier source build repair on Vercel. Configuration JSON parsing and `git diff --check` also passed. The final documentation commit's deployment is recorded in the PR's current Vercel check.
+
+No authenticated application requests, real Firefly queries, or browser privacy scenarios were run during preview verification. Build readiness does not establish the privacy behavior described in the earlier assessment. No merge or production deployment was performed.
