@@ -1,0 +1,2619 @@
+{
+  "sourceRevision": "5f278d32dddb80b6178378268d2b4d4a81c597b7",
+  "assessedAt": "2026-10-22T15:59:50.839Z",
+  "node": "v25.6.1",
+  "syntheticOnly": true,
+  "scenarios": [
+    {
+      "kind": "valid-session-control",
+      "baseline": {
+        "label": "valid-session-control-authenticated",
+        "url": "/accounts",
+        "browserErrorVisible": false,
+        "accountVisible": true,
+        "transactionVisible": false,
+        "page2TransactionVisible": false,
+        "signInVisible": false,
+        "offlineFallbackVisible": false,
+        "serviceWorker": {
+          "controlled": true,
+          "controllerState": "activated",
+          "activeState": "activated",
+          "script": "/sw.js"
+        },
+        "caches": [
+          {
+            "name": "serwist-precache-v2-http://localhost:49834/",
+            "entryCount": 56,
+            "entries": []
+          },
+          {
+            "name": "others",
+            "entryCount": 2,
+            "entries": [
+              {
+                "url": "/transactions?view=all",
+                "status": 200,
+                "contentType": "text/html; charset=utf-8",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/accounts",
+                "status": 200,
+                "contentType": "text/html; charset=utf-8",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "pages-rsc-prefetch",
+            "entryCount": 91,
+            "entries": []
+          },
+          {
+            "name": "pages-rsc",
+            "entryCount": 17,
+            "entries": [
+              {
+                "url": "/accounts?_rsc=1m08b",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT"
+                ]
+              },
+              {
+                "url": "/?_rsc=ywti7",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/transactions?_rsc=1dncn",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/transactions?view=all&_rsc=1mpbr",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/transactions?_rsc=1y3lk",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/?_rsc=12gfa",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "apis",
+            "entryCount": 2,
+            "entries": [
+              {
+                "url": "/api/firefly/transactions?limit=50&page=2",
+                "status": 200,
+                "contentType": "application/json",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/api/firefly/accounts?type=asset",
+                "status": 200,
+                "contentType": "application/json",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "observations": [
+        {
+          "label": "valid-session-control-offline-existing-page",
+          "url": "/accounts",
+          "browserErrorVisible": false,
+          "accountVisible": true,
+          "transactionVisible": false,
+          "page2TransactionVisible": false,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 91,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 17,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "valid-session-control-offline-accounts",
+          "url": "/accounts",
+          "browserErrorVisible": false,
+          "accountVisible": true,
+          "transactionVisible": false,
+          "page2TransactionVisible": false,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 91,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 17,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ],
+          "navigationError": null
+        },
+        {
+          "label": "valid-session-control-offline-transactions",
+          "url": "/transactions?view=all",
+          "browserErrorVisible": false,
+          "accountVisible": false,
+          "transactionVisible": true,
+          "page2TransactionVisible": true,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 91,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 17,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ],
+          "navigationError": null
+        },
+        {
+          "label": "valid-session-control-offline-new-tab",
+          "url": "/accounts",
+          "browserErrorVisible": false,
+          "accountVisible": true,
+          "transactionVisible": false,
+          "page2TransactionVisible": false,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 91,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 17,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ],
+          "navigationError": null
+        },
+        {
+          "label": "valid-session-control-offline-browser-reopened",
+          "url": "/accounts",
+          "browserErrorVisible": false,
+          "accountVisible": true,
+          "transactionVisible": false,
+          "page2TransactionVisible": false,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 91,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 17,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ],
+          "navigationError": null
+        }
+      ],
+      "onlineNetworkAuthStatus": 200,
+      "onlineNetworkDocumentStatus": 200,
+      "onlineNetworkDocumentLocation": null,
+      "upstreamCallsBeforeOffline": 24,
+      "offlineProbe": {
+        "error": "TypeError: Failed to fetch"
+      },
+      "cachedApiWhileOffline": {
+        "status": 200,
+        "containsSyntheticMarker": true
+      },
+      "upstreamCallsAfterOffline": 24
+    },
+    {
+      "kind": "sign-out",
+      "baseline": {
+        "label": "sign-out-authenticated",
+        "url": "/accounts",
+        "browserErrorVisible": false,
+        "accountVisible": true,
+        "transactionVisible": false,
+        "page2TransactionVisible": false,
+        "signInVisible": false,
+        "offlineFallbackVisible": false,
+        "serviceWorker": {
+          "controlled": true,
+          "controllerState": "activated",
+          "activeState": "activated",
+          "script": "/sw.js"
+        },
+        "caches": [
+          {
+            "name": "serwist-precache-v2-http://localhost:49834/",
+            "entryCount": 56,
+            "entries": []
+          },
+          {
+            "name": "others",
+            "entryCount": 2,
+            "entries": [
+              {
+                "url": "/transactions?view=all",
+                "status": 200,
+                "contentType": "text/html; charset=utf-8",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/accounts",
+                "status": 200,
+                "contentType": "text/html; charset=utf-8",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "pages-rsc-prefetch",
+            "entryCount": 91,
+            "entries": []
+          },
+          {
+            "name": "pages-rsc",
+            "entryCount": 17,
+            "entries": [
+              {
+                "url": "/accounts?_rsc=1m08b",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT"
+                ]
+              },
+              {
+                "url": "/?_rsc=ywti7",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/transactions?_rsc=1dncn",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/transactions?view=all&_rsc=1mpbr",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/transactions?_rsc=1y3lk",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/?_rsc=12gfa",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "apis",
+            "entryCount": 2,
+            "entries": [
+              {
+                "url": "/api/firefly/transactions?limit=50&page=2",
+                "status": 200,
+                "contentType": "application/json",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/api/firefly/accounts?type=asset",
+                "status": 200,
+                "contentType": "application/json",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "observations": [
+        {
+          "label": "sign-out-offline-existing-page",
+          "url": "/login",
+          "browserErrorVisible": false,
+          "accountVisible": false,
+          "transactionVisible": false,
+          "page2TransactionVisible": false,
+          "signInVisible": true,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 92,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 27,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "sign-out-offline-accounts",
+          "url": "/accounts",
+          "browserErrorVisible": false,
+          "accountVisible": true,
+          "transactionVisible": false,
+          "page2TransactionVisible": false,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 92,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 27,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ],
+          "navigationError": null
+        },
+        {
+          "label": "sign-out-offline-transactions",
+          "url": "/transactions?view=all",
+          "browserErrorVisible": false,
+          "accountVisible": false,
+          "transactionVisible": true,
+          "page2TransactionVisible": true,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 92,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 27,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ],
+          "navigationError": null
+        },
+        {
+          "label": "sign-out-offline-new-tab",
+          "url": "/accounts",
+          "browserErrorVisible": false,
+          "accountVisible": true,
+          "transactionVisible": false,
+          "page2TransactionVisible": false,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 92,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 27,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ],
+          "navigationError": null
+        },
+        {
+          "label": "sign-out-offline-browser-reopened",
+          "url": "/accounts",
+          "browserErrorVisible": false,
+          "accountVisible": true,
+          "transactionVisible": false,
+          "page2TransactionVisible": false,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 93,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 34,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ],
+          "navigationError": null
+        }
+      ],
+      "onlineNetworkAuthStatus": 401,
+      "onlineNetworkDocumentStatus": 307,
+      "onlineNetworkDocumentLocation": "/login?next=%2Faccounts",
+      "upstreamCallsBeforeOffline": 27,
+      "offlineProbe": {
+        "error": "TypeError: Failed to fetch"
+      },
+      "cachedApiWhileOffline": {
+        "status": 200,
+        "containsSyntheticMarker": true
+      },
+      "upstreamCallsAfterOffline": 27
+    },
+    {
+      "kind": "expired-session",
+      "baseline": {
+        "label": "expired-session-authenticated",
+        "url": "/accounts",
+        "browserErrorVisible": false,
+        "accountVisible": true,
+        "transactionVisible": false,
+        "page2TransactionVisible": false,
+        "signInVisible": false,
+        "offlineFallbackVisible": false,
+        "serviceWorker": {
+          "controlled": true,
+          "controllerState": "activated",
+          "activeState": "activated",
+          "script": "/sw.js"
+        },
+        "caches": [
+          {
+            "name": "serwist-precache-v2-http://localhost:49834/",
+            "entryCount": 56,
+            "entries": []
+          },
+          {
+            "name": "others",
+            "entryCount": 2,
+            "entries": [
+              {
+                "url": "/transactions?view=all",
+                "status": 200,
+                "contentType": "text/html; charset=utf-8",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/accounts",
+                "status": 200,
+                "contentType": "text/html; charset=utf-8",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "pages-rsc-prefetch",
+            "entryCount": 82,
+            "entries": []
+          },
+          {
+            "name": "pages-rsc",
+            "entryCount": 17,
+            "entries": [
+              {
+                "url": "/accounts?_rsc=1m08b",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT"
+                ]
+              },
+              {
+                "url": "/?_rsc=ywti7",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/transactions?_rsc=1dncn",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/transactions?view=all&_rsc=1mpbr",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/transactions?_rsc=1y3lk",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/?_rsc=12gfa",
+                "status": 200,
+                "contentType": "text/x-component",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "apis",
+            "entryCount": 2,
+            "entries": [
+              {
+                "url": "/api/firefly/transactions?limit=50&page=2",
+                "status": 200,
+                "contentType": "application/json",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT",
+                  "PRIVACY_DEMO_TRANSACTION"
+                ]
+              },
+              {
+                "url": "/api/firefly/accounts?type=asset",
+                "status": 200,
+                "contentType": "application/json",
+                "markers": [
+                  "PRIVACY_DEMO_ACCOUNT"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "observations": [
+        {
+          "label": "expired-session-offline-existing-page",
+          "url": "/accounts",
+          "browserErrorVisible": false,
+          "accountVisible": true,
+          "transactionVisible": false,
+          "page2TransactionVisible": false,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 82,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 17,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "expired-session-offline-accounts",
+          "url": "/accounts",
+          "browserErrorVisible": false,
+          "accountVisible": true,
+          "transactionVisible": false,
+          "page2TransactionVisible": false,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 82,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 17,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ],
+          "navigationError": null
+        },
+        {
+          "label": "expired-session-offline-transactions",
+          "url": "/transactions?view=all",
+          "browserErrorVisible": false,
+          "accountVisible": false,
+          "transactionVisible": true,
+          "page2TransactionVisible": true,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 82,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 17,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ],
+          "navigationError": null
+        },
+        {
+          "label": "expired-session-offline-new-tab",
+          "url": "/accounts",
+          "browserErrorVisible": false,
+          "accountVisible": true,
+          "transactionVisible": false,
+          "page2TransactionVisible": false,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 82,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 17,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ],
+          "navigationError": null
+        },
+        {
+          "label": "expired-session-offline-browser-reopened",
+          "url": "/accounts",
+          "browserErrorVisible": false,
+          "accountVisible": true,
+          "transactionVisible": false,
+          "page2TransactionVisible": false,
+          "signInVisible": false,
+          "offlineFallbackVisible": false,
+          "serviceWorker": {
+            "controlled": true,
+            "controllerState": "activated",
+            "activeState": "activated",
+            "script": "/sw.js"
+          },
+          "caches": [
+            {
+              "name": "serwist-precache-v2-http://localhost:49834/",
+              "entryCount": 56,
+              "entries": []
+            },
+            {
+              "name": "others",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/transactions?view=all",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/accounts",
+                  "status": 200,
+                  "contentType": "text/html; charset=utf-8",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "pages-rsc-prefetch",
+              "entryCount": 83,
+              "entries": []
+            },
+            {
+              "name": "pages-rsc",
+              "entryCount": 24,
+              "entries": [
+                {
+                  "url": "/accounts?_rsc=1m08b",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=ywti7",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1dncn",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?view=all&_rsc=1mpbr",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/transactions?_rsc=1y3lk",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/?_rsc=12gfa",
+                  "status": 200,
+                  "contentType": "text/x-component",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "apis",
+              "entryCount": 2,
+              "entries": [
+                {
+                  "url": "/api/firefly/transactions?limit=50&page=2",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT",
+                    "PRIVACY_DEMO_TRANSACTION"
+                  ]
+                },
+                {
+                  "url": "/api/firefly/accounts?type=asset",
+                  "status": 200,
+                  "contentType": "application/json",
+                  "markers": [
+                    "PRIVACY_DEMO_ACCOUNT"
+                  ]
+                }
+              ]
+            }
+          ],
+          "navigationError": null
+        }
+      ],
+      "onlineNetworkAuthStatus": 401,
+      "onlineNetworkDocumentStatus": 307,
+      "onlineNetworkDocumentLocation": "/login?next=%2Faccounts",
+      "upstreamCallsBeforeOffline": 30,
+      "offlineProbe": {
+        "error": "TypeError: Failed to fetch"
+      },
+      "cachedApiWhileOffline": {
+        "status": 200,
+        "containsSyntheticMarker": true
+      },
+      "upstreamCallsAfterOffline": 30
+    }
+  ],
+  "browser": "Playwright 1.62.1; installed chrome",
+  "browserVersion": "155.0.8059.85",
+  "upstreamCalls": [
+    {
+      "method": "GET",
+      "path": "/api/v1/accounts",
+      "query": "?type=liability"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/accounts",
+      "query": "?type=asset"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/piggy-banks",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/insight/expense/category",
+      "query": "?start=2026-10-01&end=2026-10-31"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/budgets",
+      "query": "?page=1&limit=100"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/budget-limits",
+      "query": "?start=2026-10-01&end=2026-10-31&limit=100&page=1"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/bills",
+      "query": "?page=1&limit=100"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/recurrences",
+      "query": "?page=1&limit=100"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/accounts",
+      "query": "?type=liability&limit=100"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/accounts",
+      "query": "?type=asset&limit=200"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/transactions",
+      "query": "?start=2026-10-01&end=2026-10-31&limit=100&page=1"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/transactions",
+      "query": "?page=1&limit=500&start=2026-10-01&end=2026-10-31"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/categories",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tags",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/bills",
+      "query": "?page=1&limit=100"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/recurrences",
+      "query": "?page=1&limit=100"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/transactions",
+      "query": "?start=2026-10-01&end=2026-10-31&limit=100&page=2"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/summary/basic",
+      "query": "?start=2026-10-01&end=2026-10-31"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/transactions",
+      "query": "?page=1&limit=5"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/transactions",
+      "query": "?page=1&limit=50"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/transactions",
+      "query": "?limit=50&page=2"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/transactions",
+      "query": "?limit=50&page=2"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/accounts",
+      "query": "?type=asset"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/accounts",
+      "query": "?privacy-online-control=1"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/transactions",
+      "query": "?limit=50&page=2"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/transactions",
+      "query": "?limit=50&page=2"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/accounts",
+      "query": "?type=asset"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/transactions",
+      "query": "?limit=50&page=2"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/transactions",
+      "query": "?limit=50&page=2"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/accounts",
+      "query": "?type=asset"
+    }
+  ]
+}
