@@ -3,7 +3,8 @@
   "git": {
     "deploymentEnabled": {
       "fix/firefly-read-only-boundary": false,
-      "test/recurring-expense-regressions": false
+      "test/recurring-expense-regressions": false,
+      "fix/offline-session-privacy": false
     }
   }
 }

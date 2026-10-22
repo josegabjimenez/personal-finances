@@ -27,12 +27,20 @@ export async function createSessionToken(
 export async function verifySessionToken(
   token: string | undefined
 ): Promise<boolean> {
-  if (!token) return false;
+  return (await getSessionExpiresAt(token)) !== null;
+}
+
+export async function getSessionExpiresAt(
+  token: string | undefined
+): Promise<number | null> {
+  if (!token) return null;
   try {
-    await jwtVerify(token, getSecret(), { algorithms: ["HS256"] });
-    return true;
+    const { payload } = await jwtVerify(token, getSecret(), {
+      algorithms: ["HS256"],
+    });
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
