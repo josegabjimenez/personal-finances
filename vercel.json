@@ -4,7 +4,7 @@
     "deploymentEnabled": {
       "fix/firefly-read-only-boundary": false,
       "test/recurring-expense-regressions": false,
-      "test/sign-out-offline-privacy": false
+      "fix/offline-session-privacy": false
     }
   }
 }

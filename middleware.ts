@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth/session";
+import { getSessionExpiresAt, SESSION_COOKIE } from "@/lib/auth/session";
 
 const PUBLIC_PATHS = [
   "/login",
@@ -28,8 +28,17 @@ export async function middleware(req: NextRequest) {
   if (isPublic(pathname)) return NextResponse.next();
 
   const token = req.cookies.get(SESSION_COOKIE)?.value;
-  const valid = await verifySessionToken(token);
-  if (valid) return NextResponse.next();
+  const expiresAt = await getSessionExpiresAt(token);
+  if (expiresAt !== null && expiresAt > Date.now()) {
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-pf-session-expires-at", String(expiresAt));
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+    response.headers.set("X-PF-Session-Expires-At", String(expiresAt));
+    response.headers.set("Cache-Control", "private, no-store, max-age=0");
+    return response;
+  }
 
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

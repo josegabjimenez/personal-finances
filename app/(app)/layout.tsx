@@ -1,22 +1,30 @@
+import { headers } from "next/headers";
+import { SessionExpiryGuard } from "@/components/auth/session-expiry-guard";
 import { BottomTabs } from "@/components/nav/bottom-tabs";
 import { SideRail } from "@/components/nav/side-rail";
 import { PullToRefresh } from "@/components/common/pull-to-refresh";
 
-export default function AppLayout({
+export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const expiresAt = Number(
+    (await headers()).get("x-pf-session-expires-at")
+  );
+
   return (
-    <div className="min-h-screen">
-      <SideRail />
-      <main className="pb-20 md:pb-10 md:pl-60">
-        <div className="mx-auto w-full max-w-3xl px-4 pt-safe md:pt-10">
-          {children}
-        </div>
-      </main>
-      <BottomTabs />
-      <PullToRefresh />
-    </div>
+    <SessionExpiryGuard expiresAt={expiresAt}>
+      <div className="min-h-screen">
+        <SideRail />
+        <main className="pb-20 md:pb-10 md:pl-60">
+          <div className="mx-auto w-full max-w-3xl px-4 pt-safe md:pt-10">
+            {children}
+          </div>
+        </main>
+        <BottomTabs />
+        <PullToRefresh />
+      </div>
+    </SessionExpiryGuard>
   );
 }
