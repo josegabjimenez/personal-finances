@@ -11,6 +11,7 @@
     "test:firefly-read-only": "node --test scripts/firefly-read-only.test.mjs",
     "test:recurring-obligations": "node --experimental-strip-types --test scripts/recurring-obligations.test.mjs",
     "test:privacy": "node scripts/sign-out-offline-privacy.mjs",
+    "test:transaction-loading-retry": "node scripts/transaction-loading-retry.mjs",
     "generate:icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {

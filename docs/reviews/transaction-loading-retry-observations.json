@@ -1,0 +1,35 @@
+{
+  "syntheticOnly": true,
+  "browserVersion": "145.0.7632.6",
+  "scenarios": [
+    "real route: HTTP failure preserves rows and filters, Retry repeats page 2 once, final page completes",
+    "network rejection: retained rows, synchronous retry lock, exact page, filtered empty page continues",
+    "Replace initial groups: stale success and queued observer cannot overwrite new request",
+    "Replace initial groups: stale failure and queued observer cannot overwrite new request",
+    "Replace initial groups: stale json and queued observer cannot overwrite new request",
+    "Change fetch URL: stale success and queued observer cannot overwrite new request",
+    "Change fetch URL: stale failure and queued observer cannot overwrite new request",
+    "Change fetch URL: stale json and queued observer cannot overwrite new request",
+    "unmount aborts and ignores a late success",
+    "single page has no loading, Retry, or extra request"
+  ],
+  "upstreamCalls": [
+    {
+      "page": 1,
+      "type": "withdrawal"
+    },
+    {
+      "page": 2,
+      "type": "withdrawal"
+    },
+    {
+      "page": 2,
+      "type": "withdrawal"
+    },
+    {
+      "page": 3,
+      "type": "withdrawal"
+    }
+  ],
+  "browserErrors": []
+}
