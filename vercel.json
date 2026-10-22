@@ -2,7 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "git": {
     "deploymentEnabled": {
-      "fix/firefly-read-only-boundary": false
+      "fix/firefly-read-only-boundary": false,
+      "test/recurring-expense-regressions": false
     }
   }
 }
