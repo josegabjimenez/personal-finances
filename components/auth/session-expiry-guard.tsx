@@ -28,7 +28,7 @@ export function SessionExpiryGuard({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [revoked, setRevoked] = React.useState(
-    !Number.isFinite(expiresAt) || expiresAt <= Date.now()
+    () => !Number.isFinite(expiresAt) || expiresAt <= Date.now()
   );
 
   React.useEffect(() => {

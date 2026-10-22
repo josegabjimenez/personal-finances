@@ -126,7 +126,7 @@ const privateSessionCachePlugin = {
 };
 
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
-  const message = (event as MessageEvent).data as { type?: string } | null;
+  const message = event.data as { type?: string } | null;
   if (!message?.type) return;
 
   if (
