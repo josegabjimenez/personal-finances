@@ -10,6 +10,7 @@ import { Money } from "@/components/common/money";
 import { formatDateTime } from "@/lib/format";
 import { z } from "zod";
 import { ErrorCard } from "@/components/common/error-card";
+import { transactionReturnHref } from "@/lib/transactions-navigation";
 
 const envelope = z.object({ data: transactionSchema });
 
@@ -17,6 +18,7 @@ interface SearchParams {
   journal?: string | string[];
   split?: string | string[];
   index?: string | string[];
+  returnTo?: string | string[];
 }
 
 export const dynamic = "force-dynamic";
@@ -29,6 +31,7 @@ export default async function TransactionDetailPage({
   searchParams: Promise<SearchParams>;
 }) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const backHref = transactionReturnHref(firstValue(sp.returnTo));
   try {
     const [raw, recurringIndex] = await Promise.all([
       fireflyFetch(`/transactions/${id}`, { revalidate: 60 }),
@@ -85,7 +88,7 @@ export default async function TransactionDetailPage({
     return (
       <div className="space-y-4">
         <Link
-          href="/transactions"
+          href={backHref}
           data-haptic="medium"
           className="inline-flex items-center gap-1 rounded-full px-2 py-1 -ml-2 text-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground active:bg-accent active:text-foreground"
         >
@@ -124,7 +127,7 @@ export default async function TransactionDetailPage({
     return (
       <div className="space-y-4">
         <Link
-          href="/transactions"
+          href={backHref}
           data-haptic="medium"
           className="inline-flex items-center gap-1 rounded-full px-2 py-1 -ml-2 text-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground active:bg-accent active:text-foreground"
         >

@@ -7,6 +7,7 @@ import {
   listTransactions,
 } from "@/lib/firefly/queries";
 import { transactionGroupsToEntries } from "@/lib/firefly/transaction-entries";
+import { toYMD } from "@/lib/format";
 import { PageHeader } from "@/components/page-header";
 import { NetWorthCard } from "@/components/dashboard/net-worth-card";
 import { MonthTiles } from "@/components/dashboard/month-tiles";
@@ -43,6 +44,8 @@ export default async function DashboardPage() {
           earned={s.earned}
           spent={s.spent}
           currency={currency}
+          start={toYMD(start)}
+          end={toYMD(end)}
         />
 
         <section className="space-y-3">

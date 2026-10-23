@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Repeat2 } from "lucide-react";
 import type { TransactionEntry } from "@/lib/firefly/transaction-entries";
 import {
@@ -13,6 +14,7 @@ import {
 } from "@/lib/firefly/recurring-flags";
 import { Money } from "@/components/common/money";
 import { formatDateShort } from "@/lib/format";
+import { transactionReturnHref } from "@/lib/transactions-navigation";
 
 function iconFor(type: string) {
   switch (type) {
@@ -34,6 +36,8 @@ export function TransactionRow({
   entry: TransactionEntry;
   recurringIndex?: RecurringIndex | null;
 }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { group, split } = entry;
   const amount = signedTransactionAmount(split);
 
@@ -53,10 +57,12 @@ export function TransactionRow({
         : `${split.source_name} → ${split.destination_name}`;
   const recurring = getRecurringTransactionMeta(split, recurringIndex);
   const recurringLabel = recurring.kind === "reserve" ? "Reserve" : "Recurring";
+  const detailHref = transactionEntryHref(entry);
+  const returnTo = transactionReturnHref(`${pathname}?${searchParams.toString()}`);
 
   return (
     <Link
-      href={transactionEntryHref(entry)}
+      href={`${detailHref}&returnTo=${encodeURIComponent(returnTo)}`}
       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/60"
     >
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted">

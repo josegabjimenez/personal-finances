@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:transaction-splits": "node --experimental-strip-types --experimental-default-type=module scripts/transaction-splits.test.mjs",
+    "test:transaction-navigation": "node --experimental-strip-types --test scripts/transaction-navigation.test.mjs",
     "test:firefly-read-only": "node --test scripts/firefly-read-only.test.mjs",
     "test:recurring-obligations": "node --experimental-strip-types --test scripts/recurring-obligations.test.mjs",
     "test:privacy": "node scripts/sign-out-offline-privacy.mjs",
