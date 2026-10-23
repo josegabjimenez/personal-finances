@@ -1,0 +1,23 @@
+{
+  "syntheticOnly": true,
+  "scenarios": [
+    "month and All list → selected split → Back retains period, search, and every filter",
+    "direct/error details use safe Back fallback; external, protocol and alternate paths cannot escape",
+    "each readable chip removes only its filter; Clear filters retains month/All and search",
+    "month navigation and canceled filter drafts stay aligned; dates chosen from All switch period",
+    "slow debounced search preserves newer typing; browser Back resynchronizes input",
+    "pending search composes with chip removal and filter Apply during slow navigation",
+    "dashboard Income/Spent links match summary month, types and totals; keyboard and touch work"
+  ],
+  "uncaughtBrowserErrors": [],
+  "browser": "145.0.7632.6",
+  "checks": [
+    "lint",
+    "production-build",
+    "typecheck"
+  ],
+  "summaryRange": {
+    "start": "2026-10-01",
+    "end": "2026-10-31"
+  }
+}
