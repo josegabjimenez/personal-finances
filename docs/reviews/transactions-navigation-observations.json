@@ -2,6 +2,8 @@
   "syntheticOnly": true,
   "scenarios": [
     "month and All list → selected split → Back retains period, search, and every filter",
+    "budget, category and account month/All rows return to their origin, including newly loaded rows",
+    "Dashboard recent activity and copied detail URLs retain a safe origin on success and error",
     "direct/error details use safe Back fallback; external, protocol and alternate paths cannot escape",
     "each readable chip removes only its filter; Clear filters retains month/All and search",
     "month navigation and canceled filter drafts stay aligned; dates chosen from All switch period",
@@ -19,5 +21,38 @@
   "summaryRange": {
     "start": "2026-10-01",
     "end": "2026-10-31"
+  },
+  "verificationDate": "2026-10-23",
+  "helperTests": {
+    "command": "npm run test:transaction-navigation",
+    "passed": 4
+  },
+  "originRoutes": {
+    "/": [],
+    "/transactions": [
+      "view",
+      "start",
+      "end",
+      "q",
+      "type",
+      "account",
+      "category",
+      "tag"
+    ],
+    "/budgets/[id]": [
+      "view",
+      "start",
+      "end"
+    ],
+    "/categories/[id]": [
+      "view",
+      "start",
+      "end"
+    ],
+    "/accounts/[id]": [
+      "view",
+      "start",
+      "end"
+    ]
   }
 }

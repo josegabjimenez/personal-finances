@@ -58,13 +58,11 @@ export function TransactionRow({
   const recurring = getRecurringTransactionMeta(split, recurringIndex);
   const recurringLabel = recurring.kind === "reserve" ? "Reserve" : "Recurring";
   const detailHref = transactionEntryHref(entry);
-  const returnTo = pathname === "/transactions"
-    ? transactionReturnHref(`/transactions?${searchParams.toString()}`)
-    : null;
+  const returnTo = transactionReturnHref(`${pathname}?${searchParams.toString()}`);
 
   return (
     <Link
-      href={returnTo ? `${detailHref}&returnTo=${encodeURIComponent(returnTo)}` : detailHref}
+      href={`${detailHref}&returnTo=${encodeURIComponent(returnTo)}`}
       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/60"
     >
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted">
