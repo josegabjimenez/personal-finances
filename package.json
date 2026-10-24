@@ -13,7 +13,10 @@
     "test:recurring-obligations": "node --experimental-strip-types --test scripts/recurring-obligations.test.mjs",
     "test:privacy": "node scripts/sign-out-offline-privacy.mjs",
     "test:transaction-loading-retry": "node scripts/transaction-loading-retry.mjs",
-    "generate:icons": "node scripts/generate-icons.mjs"
+    "generate:icons": "node scripts/generate-icons.mjs",
+    "test:activity-period": "node --experimental-strip-types --test scripts/activity-period.test.mjs",
+    "test:transaction-totals": "node --experimental-strip-types --test scripts/transaction-totals.test.mjs",
+    "test:month-navigation-ux": "node scripts/month-navigation-ux.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

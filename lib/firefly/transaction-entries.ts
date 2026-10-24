@@ -28,6 +28,16 @@ export interface TransactionEntrySummary {
   count: number;
   total: number;
   currency: string;
+  totals: Array<{ currency: string; total: number }>;
+}
+
+function uniqueTransactionEntries(entries: TransactionEntry[]) {
+  const seen = new Set<string>();
+  return entries.filter(({ key }) => {
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function transactionEntryKey(
@@ -111,7 +121,8 @@ export function transactionGroupsToEntries(
     }))
   );
 
-  return filterTransactionEntries(entries, filters);
+  // Adjacent pages (or a retried page) can repeat a journal. Keep one row per split.
+  return filterTransactionEntries(uniqueTransactionEntries(entries), filters);
 }
 
 export function selectTransactionEntry(
@@ -154,17 +165,24 @@ export function summarizeTransactionEntries(
   entries: TransactionEntry[],
   defaultCurrency = "COP"
 ): TransactionEntrySummary {
-  const total = entries.reduce((sum, { split }) => {
+  const uniqueEntries = uniqueTransactionEntries(entries);
+  const totals = new Map<string, number>();
+  const total = uniqueEntries.reduce((sum, { split }) => {
     if (split.type !== "withdrawal" && split.type !== "deposit") return sum;
-    return sum + signedTransactionAmount(split);
+    const amount = signedTransactionAmount(split);
+    const currency = split.currency_code?.trim().toUpperCase() || defaultCurrency;
+    totals.set(currency, (totals.get(currency) ?? 0) + amount);
+    return sum + amount;
   }, 0);
 
   return {
-    count: entries.length,
+    count: uniqueEntries.length,
+    // Retained for existing single-currency consumers. New summaries use totals.
     total,
     currency:
-      entries.find(({ split }) => Boolean(split.currency_code))?.split.currency_code ??
+      uniqueEntries.find(({ split }) => Boolean(split.currency_code))?.split.currency_code ??
       defaultCurrency,
+    totals: Array.from(totals, ([currency, total]) => ({ currency, total })),
   };
 }
 

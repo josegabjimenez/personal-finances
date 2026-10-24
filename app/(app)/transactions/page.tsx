@@ -2,17 +2,17 @@ import { listTransactions, listAccounts, listCategories, listTags } from "@/lib/
 import { getRecurringIndex } from "@/lib/firefly/recurring";
 import { getRecurringTransactionMeta } from "@/lib/firefly/recurring-flags";
 import {
-  summarizeTransactionEntries,
   transactionGroupsToEntries,
 } from "@/lib/firefly/transaction-entries";
 import { toYMD, startOfMonth, endOfMonth } from "@/lib/format";
+import { parseMonth } from "@/lib/activity-period";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
-import { Money } from "@/components/common/money";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { FilterBar } from "@/components/transactions/filter-bar";
 import { MonthNav } from "@/components/transactions/month-nav";
 import { InfiniteTransactionList } from "@/components/transactions/infinite-transaction-list";
+import { TransactionSummary } from "@/components/transactions/transaction-summary";
 import { Empty } from "@/components/common/empty";
 import { ErrorCard } from "@/components/common/error-card";
 
@@ -46,12 +46,11 @@ export default async function TransactionsPage({
     effectiveEnd = toYMD(endOfMonth());
   }
 
-  // Parse year/month from effective start for MonthNav
-  const [yearStr, monthStr] = (effectiveStart ?? "").split("-");
-  const navYear = parseInt(yearStr) || new Date().getFullYear();
-  const navMonth = parseInt(monthStr) || (new Date().getMonth() + 1);
+  const navPeriod = parseMonth(effectiveStart ?? effectiveEnd);
+  const navYear = navPeriod?.year ?? new Date().getFullYear();
+  const navMonth = navPeriod?.month ?? (new Date().getMonth() + 1);
 
-  // Month view: fetch all at once (no pagination). All view: first page only, then infinite scroll.
+  // Keep the existing first-page sizes; load any remaining pages as the list is viewed.
   const limit = isAllView ? 50 : 500;
 
   const loadResult = await Promise.all([
@@ -75,6 +74,7 @@ export default async function TransactionsPage({
     return (
       <div className="space-y-6">
         <PageHeader title="Transactions" />
+        <MonthNav year={navYear} month={navMonth} isAll={isAllView} />
         <ErrorCard message={message} />
       </div>
     );
@@ -82,10 +82,12 @@ export default async function TransactionsPage({
 
   const [{ groups, totalPages }, accounts, categories, tags, recurringIndex] = loadResult.data;
 
-    // Build Firefly proxy URL for infinite scroll (All view)
-    const allFetchUrl = (() => {
-      const params = new URLSearchParams({ limit: "50" });
+    // Keep subsequent pages in the same date range and transaction type as page one.
+    const fetchUrl = (() => {
+      const params = new URLSearchParams({ limit: String(limit) });
       if (sp.type) params.set("type", sp.type);
+      if (effectiveStart) params.set("start", effectiveStart);
+      if (effectiveEnd) params.set("end", effectiveEnd);
       return `/api/firefly/transactions?${params.toString()}`;
     })();
 
@@ -101,7 +103,6 @@ export default async function TransactionsPage({
         return [recurring.label, recurring.detail];
       },
     });
-    const summary = summarizeTransactionEntries(filtered, "COP");
 
     return (
       <div className="space-y-4">
@@ -120,15 +121,15 @@ export default async function TransactionsPage({
           tags={tags.map((t) => t.attributes.tag)}
         />
 
-        {isAllView ? (
-          /* All view — infinite scroll, filters applied client-side as pages load */
+        {isAllView || totalPages > 1 ? (
+          /* Filters and summaries follow loaded rows until pagination completes. */
           groups.length === 0 ? (
             <Empty title="No transactions" />
           ) : (
             <InfiniteTransactionList
               initialGroups={groups}
               totalPages={totalPages}
-              fetchUrl={allFetchUrl}
+              fetchUrl={fetchUrl}
               searchQuery={sp.q}
               accountFilter={sp.account}
               categoryFilter={sp.category}
@@ -138,22 +139,12 @@ export default async function TransactionsPage({
             />
           )
         ) : (
-          /* Month view — full month fetched at once, no pagination */
+          /* Single-page ranges are complete and can render on the server. */
           filtered.length === 0 ? (
             <Empty title="No transactions match your filters" />
           ) : (
             <>
-              <div className="flex items-center justify-between px-1">
-                <span className="text-xs text-muted-foreground">
-                  {summary.count} transaction{summary.count !== 1 ? "s" : ""}
-                </span>
-                <Money
-                  amount={summary.total}
-                  currency={summary.currency}
-                  colorize
-                  className="text-sm font-medium"
-                />
-              </div>
+              <TransactionSummary entries={filtered} typeFilter={sp.type} />
               <Card className="divide-y overflow-hidden p-0">
                 {filtered.map((entry) => (
                   <TransactionRow
