@@ -1,0 +1,273 @@
+{
+  "syntheticOnly": true,
+  "browserVersion": "145.0.7632.6",
+  "scenarios": [
+    "arbitrary historical month preserves filters, journal identity, Back, and explicit All/current actions",
+    "custom From/To dates remain exact across cross-month detail Back and filter removal",
+    "accounts/synthetic-account: historical picker, exact custom range, All view, and transaction Back preserve context",
+    "categories/synthetic-category: historical picker, exact custom range, All view, and transaction Back preserve context",
+    "category overview selected month drives data, visible labels, detail link, and Categories Back",
+    "monthly totals distinguish net, income, expense, currencies, split matching, and transfer exclusion",
+    "category month alias retains the same period through transaction Back",
+    "transactions: multi-page historical range keeps date and page-size constraints while loading",
+    "accounts/synthetic-account: multi-page historical range keeps date and page-size constraints while loading",
+    "categories/synthetic-category: multi-page historical range keeps date and page-size constraints while loading",
+    "loaded filtered totals stay intact on failure, retry the same page, append once, and mark final scope",
+    "390px historical month picker and explicit All/current actions fit without horizontal overflow"
+  ],
+  "upstreamCalls": [
+    {
+      "path": "/api/v1/transactions",
+      "page": "1",
+      "limit": "500",
+      "type": "withdrawal",
+      "start": "2026-10-01",
+      "end": "2026-10-31"
+    },
+    {
+      "path": "/api/v1/accounts",
+      "type": "asset"
+    },
+    {
+      "path": "/api/v1/categories"
+    },
+    {
+      "path": "/api/v1/tags"
+    },
+    {
+      "path": "/api/v1/bills",
+      "page": "1",
+      "limit": "100"
+    },
+    {
+      "path": "/api/v1/recurrences",
+      "page": "1",
+      "limit": "100"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "page": "1",
+      "limit": "500",
+      "type": "withdrawal",
+      "start": "2011-04-01",
+      "end": "2011-04-30"
+    },
+    {
+      "path": "/api/v1/transactions/ux-mixed"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "page": "1",
+      "limit": "50",
+      "type": "withdrawal"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "page": "1",
+      "limit": "500",
+      "type": "withdrawal",
+      "start": "2024-01-10",
+      "end": "2024-02-12"
+    },
+    {
+      "path": "/api/v1/accounts/synthetic-account"
+    },
+    {
+      "path": "/api/v1/accounts/synthetic-account/transactions",
+      "page": "1",
+      "limit": "500",
+      "start": "2026-10-01",
+      "end": "2026-10-31"
+    },
+    {
+      "path": "/api/v1/accounts/synthetic-account/transactions",
+      "page": "1",
+      "limit": "500",
+      "start": "2011-04-01",
+      "end": "2011-04-30"
+    },
+    {
+      "path": "/api/v1/accounts/synthetic-account/transactions",
+      "page": "1",
+      "limit": "500",
+      "start": "2024-01-10",
+      "end": "2024-02-12"
+    },
+    {
+      "path": "/api/v1/accounts/synthetic-account/transactions",
+      "page": "1",
+      "limit": "50"
+    },
+    {
+      "path": "/api/v1/categories/synthetic-category"
+    },
+    {
+      "path": "/api/v1/categories/synthetic-category/transactions",
+      "page": "1",
+      "limit": "500",
+      "start": "2026-10-01",
+      "end": "2026-10-31"
+    },
+    {
+      "path": "/api/v1/categories/synthetic-category/transactions",
+      "page": "1",
+      "limit": "500",
+      "start": "2011-04-01",
+      "end": "2011-04-30"
+    },
+    {
+      "path": "/api/v1/categories/synthetic-category/transactions",
+      "page": "1",
+      "limit": "500",
+      "start": "2024-01-10",
+      "end": "2024-02-12"
+    },
+    {
+      "path": "/api/v1/categories/synthetic-category/transactions",
+      "page": "1",
+      "limit": "50"
+    },
+    {
+      "path": "/api/v1/insight/expense/category",
+      "start": "2026-10-01",
+      "end": "2026-10-31"
+    },
+    {
+      "path": "/api/v1/insight/expense/category",
+      "start": "2011-04-01",
+      "end": "2011-04-30"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "page": "1",
+      "limit": "500",
+      "start": "2024-01-01",
+      "end": "2024-01-31"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "page": "1",
+      "limit": "500",
+      "type": "withdrawal",
+      "start": "2024-01-01",
+      "end": "2024-01-31"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "page": "1",
+      "limit": "500",
+      "type": "deposit",
+      "start": "2024-01-01",
+      "end": "2024-01-31"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "page": "1",
+      "limit": "500",
+      "type": "transfer",
+      "start": "2024-01-01",
+      "end": "2024-01-31"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "page": "1",
+      "limit": "50"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "page": "1",
+      "limit": "500",
+      "start": "2012-02-01",
+      "end": "2012-02-29"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "limit": "500",
+      "start": "2012-02-01",
+      "end": "2012-02-29",
+      "page": "2"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "limit": "500",
+      "start": "2012-02-01",
+      "end": "2012-02-29",
+      "page": "3"
+    },
+    {
+      "path": "/api/v1/accounts/synthetic-account/transactions",
+      "page": "1",
+      "limit": "500",
+      "start": "2012-02-01",
+      "end": "2012-02-29"
+    },
+    {
+      "path": "/api/v1/accounts/synthetic-account/transactions",
+      "limit": "500",
+      "start": "2012-02-01",
+      "end": "2012-02-29",
+      "page": "2"
+    },
+    {
+      "path": "/api/v1/accounts/synthetic-account/transactions",
+      "limit": "500",
+      "start": "2012-02-01",
+      "end": "2012-02-29",
+      "page": "3"
+    },
+    {
+      "path": "/api/v1/categories/synthetic-category/transactions",
+      "page": "1",
+      "limit": "500",
+      "start": "2012-02-01",
+      "end": "2012-02-29"
+    },
+    {
+      "path": "/api/v1/categories/synthetic-category/transactions",
+      "limit": "500",
+      "start": "2012-02-01",
+      "end": "2012-02-29",
+      "page": "2"
+    },
+    {
+      "path": "/api/v1/categories/synthetic-category/transactions",
+      "limit": "500",
+      "start": "2012-02-01",
+      "end": "2012-02-29",
+      "page": "3"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "limit": "50",
+      "page": "2"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "limit": "50",
+      "page": "2"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "limit": "50",
+      "page": "3"
+    },
+    {
+      "path": "/api/v1/transactions/ux-appended"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "page": "1",
+      "limit": "500",
+      "start": "2026-10-01",
+      "end": "2026-10-31"
+    },
+    {
+      "path": "/api/v1/transactions",
+      "page": "1",
+      "limit": "500",
+      "start": "2011-04-01",
+      "end": "2011-04-30"
+    }
+  ],
+  "browserErrors": []
+}

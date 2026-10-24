@@ -115,7 +115,12 @@ async function context(baseUrl, controlled = false) {
     };
     window.IntersectionObserver = class {
       constructor(callback) { this.callback = callback; state.observers.push(this); }
-      observe(target) { this.target = target; this.list = !!target.closest("#retry-list"); this.active = true; }
+      observe(target) {
+        this.target = target;
+        // Target pagination, independently of Next Link's prefetch observers.
+        this.list = !!target.closest("#retry-list") && target.classList.contains("py-6");
+        this.active = true;
+      }
       disconnect() { this.active = false; }
       unobserve() { this.active = false; }
       takeRecords() { return []; }
@@ -146,7 +151,7 @@ async function fixture(baseUrl) {
   const { ctx, page } = await context(baseUrl, true);
   await page.goto(`${baseUrl}/retry-harness`);
   await page.getByText("RETRY_KEEP_OLD", { exact: true }).waitFor();
-  await page.waitForFunction(() => window.__retry.observers.some((o) => o.active && o.target?.closest("#retry-list")));
+  await page.waitForFunction(() => window.__retry.observers.some((o) => o.active && o.list));
   return { ctx, page };
 }
 async function record(label, run) {
@@ -250,7 +255,8 @@ try {
     await page.getByRole("button", { name: "Retry", exact: true }).evaluate((button) => { for (let i = 0; i < 5; i++) button.click(); });
     await page.getByText("RETRY_KEEP_051", { exact: true }).waitFor();
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await page.getByText("26 transactions", { exact: true }).waitFor();
+    await page.getByText("26 transaction entries", { exact: true }).waitFor();
+    await page.getByText("All matching transactions in this view", { exact: true }).waitFor();
     assert.equal(await rows.count(), 26);
     assert.deepEqual(calls.filter((c) => c.page > 1).map((c) => c.page), [2, 2, 3]);
     assert.ok(calls.every((c) => c.type === "withdrawal"));
@@ -271,11 +277,12 @@ try {
     await waitRequests(page, 2);
     assert.deepEqual(await page.evaluate(() => window.__retry.requests.map((r) => r.url)), Array(2).fill("/__retry-fixture/old?type=withdrawal&page=2"));
     await respond(page, 1, [group("FILTERED", false)]);
-    await page.getByText("1 transaction+", { exact: true }).waitFor();
-    await page.waitForFunction(() => window.__retry.observers.some((o) => o.active && o.target?.closest("#retry-list")));
+    await page.getByText("1 transaction entry", { exact: true }).waitFor();
+    await page.waitForFunction(() => window.__retry.observers.some((o) => o.active && o.list));
     await page.evaluate(() => window.__retry.trigger()); await waitRequests(page, 3);
     await respond(page, 2, []);
-    await page.getByText("1 transaction", { exact: true }).waitFor();
+    await page.getByText("1 transaction entry", { exact: true }).waitFor();
+    await page.getByText("All matching transactions in this view", { exact: true }).waitFor();
     await page.evaluate(() => window.__retry.trigger(true, 5)); await waitRequests(page, 3);
     await ctx.close();
   });
@@ -293,6 +300,7 @@ try {
         await page.getByText("RETRY_KEEP_NEW", { exact: true }).waitFor();
         assert.equal(await page.evaluate(() => window.__retry.requests[0].signal.aborted), true);
         await page.evaluate(() => window.__retry.trigger(true, 5)); await waitRequests(page, 1);
+        await page.waitForFunction(() => window.__retry.observers.some((o) => o.active && o.list));
         await page.evaluate(() => window.__retry.trigger()); await waitRequests(page, 2);
         if (lateResult === "failure") await page.evaluate(() => window.__retry.fail(0));
         else if (lateResult === "json") await page.evaluate((data) => window.__retry.finishJson({ data, meta: { pagination: { total_pages: 3 } } }), [group("STALE")]);
@@ -321,7 +329,8 @@ try {
   await record("single page has no loading, Retry, or extra request", async () => {
     const { ctx, page } = await fixture(baseUrl);
     await page.getByRole("button", { name: "Single page", exact: true }).click();
-    await page.getByText("1 transaction", { exact: true }).waitFor();
+    await page.getByText("1 transaction entry", { exact: true }).waitFor();
+    await page.getByText("All matching transactions in this view", { exact: true }).waitFor();
     await page.evaluate(() => window.__retry.trigger(true, 5)); await waitRequests(page, 0);
     assert.equal(await page.getByRole("button", { name: "Retry", exact: true }).count(), 0);
     await ctx.close();

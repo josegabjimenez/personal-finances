@@ -1,5 +1,5 @@
 const LIST_PARAMS = ["view", "start", "end", "q", "type", "account", "category", "tag"];
-const PERIOD_PARAMS = ["view", "start", "end"];
+const PERIOD_PARAMS = ["view", "start", "end", "month"];
 
 /** Only screens that link to transaction details and their known options can be Back targets. */
 export function transactionReturnHref(value?: string) {

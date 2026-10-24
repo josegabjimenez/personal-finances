@@ -4,6 +4,10 @@ import { transactionReturnHref } from "../lib/transactions-navigation.ts";
 
 const month = { start: "2026-01-01", end: "2026-01-31" };
 
+test("direct category month links survive transaction detail and Back", () => {
+  assert.equal(transactionReturnHref("/categories/42?month=2011-04&unknown=discard"), "/categories/42?month=2011-04");
+});
+
 test("each entity origin keeps its month or All view and drops unrelated query keys", () => {
   for (const path of ["/budgets/demo-budget", "/categories/42", "/accounts/demo_account"]) {
     for (const period of [month, { view: "all" }]) {

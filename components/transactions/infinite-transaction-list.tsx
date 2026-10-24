@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Money } from "@/components/common/money";
 import { Empty } from "@/components/common/empty";
 import { TransactionRow } from "./transaction-row";
+import { TransactionSummary } from "./transaction-summary";
 import type { TransactionGroup } from "@/lib/firefly/types";
 import {
-  summarizeTransactionEntries,
   transactionGroupsToEntries,
   type TransactionEntryContextFilter,
 } from "@/lib/firefly/transaction-entries";
@@ -57,6 +56,7 @@ export function InfiniteTransactionList({
 }: Props) {
   const [allGroups, setAllGroups] = useState<TransactionGroup[]>(initialGroups);
   const [status, setStatus] = useState<LoadingStatus>(totalPages <= 1 ? "done" : "idle");
+  const [source, setSource] = useState({ initialGroups, fetchUrl, totalPages });
   const sessionRef = useRef<PaginationSession | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +112,7 @@ export function InfiniteTransactionList({
     sessionRef.current = session;
     setAllGroups(initialGroups);
     setStatus(session.status);
+    setSource({ initialGroups, fetchUrl, totalPages });
     return () => {
       if (sessionRef.current === session) sessionRef.current = null;
       session.controller?.abort();
@@ -143,9 +144,15 @@ export function InfiniteTransactionList({
     ) void loadMore(session, true);
   }, [fetchUrl, initialGroups, totalPages, loadMore]);
 
-  const done = status === "done";
+  // New props render before the reset effect. Never label the previous range's
+  // rows or completion status as belonging to the incoming range.
+  const sourceMatches = source.initialGroups === initialGroups &&
+    source.fetchUrl === fetchUrl && source.totalPages === totalPages;
+  const visibleStatus = sourceMatches ? status : totalPages <= 1 ? "done" : "idle";
+  const visibleGroups = sourceMatches ? allGroups : initialGroups;
+  const done = visibleStatus === "done";
 
-  const displayed = transactionGroupsToEntries(allGroups, {
+  const displayed = transactionGroupsToEntries(visibleGroups, {
     query: searchQuery,
     type: typeFilter,
     accountName: accountFilter,
@@ -157,23 +164,16 @@ export function InfiniteTransactionList({
       return [recurring.label, recurring.detail];
     },
   });
-  const summary = summarizeTransactionEntries(displayed, defaultCurrency);
 
   return (
     <div className="space-y-4">
-      {displayed.length > 0 && (
-        <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-muted-foreground">
-            {summary.count} transaction{summary.count !== 1 ? "s" : ""}
-            {!done ? "+" : ""}
-          </span>
-          <Money
-            amount={summary.total}
-            currency={summary.currency}
-            colorize
-            className="text-sm font-medium"
-          />
-        </div>
+      {(displayed.length > 0 || !done) && (
+        <TransactionSummary
+          entries={displayed}
+          typeFilter={typeFilter}
+          isPartial={!done}
+          defaultCurrency={defaultCurrency}
+        />
       )}
       {displayed.length > 0 && (
         <Card className="divide-y overflow-hidden p-0">
@@ -185,7 +185,7 @@ export function InfiniteTransactionList({
       {displayed.length === 0 && done && <Empty title="No transactions match your filters" />}
       {!done && (
         <div ref={sentinelRef} className="py-6 text-center text-xs text-muted-foreground">
-          {status === "error" ? (
+          {visibleStatus === "error" ? (
             <div className="space-y-3">
               <p role="alert">Couldn’t load more transactions. Please try again.</p>
               <Button type="button" variant="outline" size="sm" onClick={retry}>
@@ -193,7 +193,7 @@ export function InfiniteTransactionList({
               </Button>
             </div>
           ) : (
-            <span role="status">{status === "loading" ? "Loading…" : ""}</span>
+            <span role="status">{visibleStatus === "loading" ? "Loading…" : ""}</span>
           )}
         </div>
       )}

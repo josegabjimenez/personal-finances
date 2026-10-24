@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getAccount, listAccountTransactions } from "@/lib/firefly/queries";
 import {
-  summarizeTransactionEntries,
   transactionGroupsToEntries,
 } from "@/lib/firefly/transaction-entries";
 import { toYMD, startOfMonth, endOfMonth } from "@/lib/format";
@@ -10,6 +9,8 @@ import { Card } from "@/components/ui/card";
 import { Money } from "@/components/common/money";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { MonthNav } from "@/components/transactions/month-nav";
+import { TransactionSummary } from "@/components/transactions/transaction-summary";
+import { parseMonth } from "@/lib/activity-period";
 import { InfiniteTransactionList } from "@/components/transactions/infinite-transaction-list";
 import { Empty } from "@/components/common/empty";
 import { ErrorCard } from "@/components/common/error-card";
@@ -40,11 +41,11 @@ export default async function AccountDetailPage({
     effectiveEnd = toYMD(endOfMonth());
   }
 
-  const [yearStr, monthStr] = (effectiveStart ?? "").split("-");
-  const navYear = parseInt(yearStr) || new Date().getFullYear();
-  const navMonth = parseInt(monthStr) || (new Date().getMonth() + 1);
+  const selected = parseMonth(effectiveStart ?? effectiveEnd);
+  const navYear = selected?.year ?? new Date().getFullYear();
+  const navMonth = selected?.month ?? new Date().getMonth() + 1;
 
-  // Month view: fetch all at once. All view: first page only, then infinite scroll.
+  // Keep existing page sizes and use the existing list to load remaining pages.
   const limit = isAllView ? 50 : 500;
 
   const backLink = (
@@ -70,6 +71,7 @@ export default async function AccountDetailPage({
     return (
       <div className="space-y-4">
         {backLink}
+        <MonthNav year={navYear} month={navMonth} isAll={isAllView} baseUrl={`/accounts/${id}`} />
         <ErrorCard message={message} />
       </div>
     );
@@ -81,9 +83,11 @@ export default async function AccountDetailPage({
     const balance = account.attributes.current_balance;
     const currency = account.attributes.currency_code ?? "COP";
 
-    const allFetchUrl = `/api/firefly/accounts/${id}/transactions?limit=50`;
+    const fetchParams = new URLSearchParams({ limit: String(limit) });
+    if (effectiveStart) fetchParams.set("start", effectiveStart);
+    if (effectiveEnd) fetchParams.set("end", effectiveEnd);
+    const fetchUrl = `/api/firefly/accounts/${id}/transactions?${fetchParams}`;
     const entries = transactionGroupsToEntries(groups, { accountId: id });
-    const summary = summarizeTransactionEntries(entries, currency);
 
     return (
       <div className="space-y-4">
@@ -103,14 +107,14 @@ export default async function AccountDetailPage({
           isAll={isAllView}
           baseUrl={`/accounts/${id}`}
         />
-        {isAllView ? (
+        {isAllView || totalPages > 1 ? (
           groups.length === 0 ? (
             <Empty title="No transactions for this account" />
           ) : (
             <InfiniteTransactionList
               initialGroups={groups}
               totalPages={totalPages}
-              fetchUrl={allFetchUrl}
+              fetchUrl={fetchUrl}
               contextFilter={{ accountId: id }}
               defaultCurrency={currency}
             />
@@ -120,17 +124,7 @@ export default async function AccountDetailPage({
             <Empty title="No transactions for this account" />
           ) : (
             <>
-              <div className="flex items-center justify-between px-1">
-                <span className="text-xs text-muted-foreground">
-                  {summary.count} transaction{summary.count !== 1 ? "s" : ""}
-                </span>
-                <Money
-                  amount={summary.total}
-                  currency={summary.currency}
-                  colorize
-                  className="text-sm font-medium"
-                />
-              </div>
+              <TransactionSummary entries={entries} defaultCurrency={currency} isPartial={totalPages > 1} />
               <Card className="divide-y overflow-hidden p-0">
                 {entries.map((entry) => (
                   <TransactionRow key={entry.key} entry={entry} />
